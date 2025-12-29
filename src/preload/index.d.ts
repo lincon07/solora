@@ -10,10 +10,13 @@ declare global {
       onNoUpdateAvailable: (cb: () => void) => () => void
 
       onUpdateError: (cb: () => void) => () => void
-      
+
       checkForUpdates: () => void
       restart: () => void
       removeAllListeners: () => void
+    }
+    system: {
+      getSystemConfiguration: () => Promise<any>
     }
   }
 }

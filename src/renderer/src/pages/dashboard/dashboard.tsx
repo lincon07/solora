@@ -11,12 +11,12 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Tabs,
+  Tab,
+  IconButton,
 } from "@mui/material"
 
-import FullCalendar from "@fullcalendar/react"
-import timeGridPlugin from "@fullcalendar/timegrid"
-import interactionPlugin from "@fullcalendar/interaction"
 import { BarChart } from "@mui/x-charts/BarChart"
 
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
@@ -25,52 +25,86 @@ import PersonIcon from "@mui/icons-material/Person"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents"
 import InsightsIcon from "@mui/icons-material/Insights"
+import AddIcon from "@mui/icons-material/Add"
 
 /* ---------------- Component ---------------- */
 
 export default function Dashboard() {
   const [now, setNow] = React.useState(new Date())
+  const [activeDay, setActiveDay] = React.useState(0)
 
   React.useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  /* ---------------- Meal Events ---------------- */
-
-  const mealEvents = [
-    { title: "Breakfast • Cereal", start: startAt(0, 8), end: startAt(0, 9), color: "#22c55e" },
-    { title: "Lunch • Spaghetti & Meatballs", start: startAt(0, 12), end: startAt(0, 13), color: "#f59e0b" },
-    { title: "Dinner • Grilled Chicken", start: startAt(0, 18), end: startAt(0, 19), color: "#ef4444" },
-    { title: "Lunch • Sandwich", start: startAt(1, 12), end: startAt(1, 13), color: "#3b82f6" }
-  ]
-
   /* ---------------- Data ---------------- */
+
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
   const people = [
     {
       name: "Dan",
       color: "#2563eb",
-      todos: ["Trash", "Dishes", "Vacuum"]
+      todosByDay: {
+        Mon: ["Trash", "Dishes"],
+        Tue: ["Vacuum"],
+        Wed: ["Trash"],
+        Thu: [],
+        Fri: ["Dishes"],
+        Sat: [],
+        Sun: [],
+      },
     },
     {
       name: "Michelle",
       color: "#db2777",
-      todos: ["Laundry", "Groceries", "Meal Prep"]
-    }
+      todosByDay: {
+        Mon: ["Laundry"],
+        Tue: ["Groceries"],
+        Wed: [],
+        Thu: ["Meal Prep"],
+        Fri: [],
+        Sat: [],
+        Sun: [],
+      },
+    },
   ]
 
   const stats = [5, 6, 4, 7, 3, 2, 1]
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
   /* ---------------- Render ---------------- */
 
   return (
-    <Box sx={{ minHeight: "100vh", p: 3 }}>
-      {/* ================= Header ================= */}
-      <Stack direction="row" justifyContent="space-between" mb={3}>
-        <Box>
-          <Typography variant="h2" fontWeight={600}>
+    <Box sx={{ p: 3, width: "100%", overflowX: "hidden" }}>
+      {/* ================= HEADER ================= */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        {/* Left: Page info */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Box>
+            <Typography variant="h4" fontWeight={700}>
+              Dashboard
+            </Typography>
+            <Typography color="text.secondary">
+              Overview of your household activity
+            </Typography>
+          </Box>
+        </Stack>
+
+        {/* Center: Time */}
+        <Box sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            fontWeight={600}
+            sx={{ lineHeight: 1 }}
+          >
             {now.toLocaleTimeString()}
           </Typography>
           <Typography color="text.secondary">
@@ -78,49 +112,42 @@ export default function Dashboard() {
               weekday: "long",
               month: "long",
               day: "numeric",
-              year: "numeric"
+              year: "numeric",
             })}
           </Typography>
         </Box>
 
+        {/* Right: Actions */}
         <Stack spacing={1} alignItems="flex-end">
-          <Chip icon={<CalendarMonthIcon />} label="Meal Calendar" color="primary" />
-          <Chip icon={<RestaurantIcon />} label="Tap meal to edit" />
-        </Stack>
-      </Stack>
-
-      {/* ================= Meal Calendar ================= */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent sx={{ height: 520, overflow: 'auto' }}>
-          <FullCalendar
-            plugins={[timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            headerToolbar={false}
-            aspectRatio={ 1.8}
-            height={1200}          // 👈 REAL PX HEIGHT (critical)
-            expandRows
-            nowIndicator
-            editable
-            selectable
-            firstDay={1}
-            allDaySlot={false}
-            slotMinTime="06:00:00"
-            slotMaxTime="22:00:00"
-            slotDuration="01:00:00"
-            events={mealEvents}
-            eventClick={(info) => alert(info.event.title)}
+          <Chip
+            icon={<CalendarMonthIcon />}
+            label="Meal Calendar"
+            color="primary"
           />
-        </CardContent>
-      </Card>
+          <Chip
+            icon={<RestaurantIcon />}
+            label="Tap meal to edit"
+          />
+        </Stack>
+      </Box>
 
-      {/* ================= People (Horizontal Scroll) ================= */}
+      {/* ================= People ================= */}
       <Typography variant="h5" mb={2}>
         People
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 2, overflowX: "auto", mb: 4 }}>
-        {people.map(p => (
-          <Card key={p.name} sx={{ minWidth: 260 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          overflowX: "auto",
+          overflowY: "hidden",
+          pb: 1,
+          mb: 4,
+        }}
+      >
+        {people.map((p) => (
+          <Card key={p.name} sx={{ minWidth: 300, flexShrink: 0 }}>
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar sx={{ bgcolor: p.color }}>
@@ -129,10 +156,22 @@ export default function Dashboard() {
                 <Typography variant="h6">{p.name}</Typography>
               </Stack>
 
-              <Divider sx={{ my: 1 }} />
+              <Divider sx={{ my: 1.5 }} />
+
+              <Tabs
+                value={activeDay}
+                onChange={(_, v) => setActiveDay(v)}
+                variant="scrollable"
+                scrollButtons={false}
+                sx={{ mb: 1 }}
+              >
+                {days.map((d) => (
+                  <Tab key={d} label={d} />
+                ))}
+              </Tabs>
 
               <List dense>
-                {p.todos.map(t => (
+                {(p.todosByDay[days[activeDay]] || []).map((t) => (
                   <ListItem key={t}>
                     <ListItemIcon>
                       <CheckCircleIcon color="success" />
@@ -140,10 +179,48 @@ export default function Dashboard() {
                     <ListItemText primary={t} />
                   </ListItem>
                 ))}
+
+                <ListItem>
+                  <ListItemIcon>
+                    <IconButton size="small">
+                      <AddIcon />
+                    </IconButton>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Typography color="text.secondary">
+                        Add chore
+                      </Typography>
+                    }
+                  />
+                </ListItem>
               </List>
             </CardContent>
           </Card>
         ))}
+
+        {/* Add Person */}
+        <Card
+          sx={{
+            minWidth: 260,
+            flexShrink: 0,
+            border: "2px dashed",
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <Stack alignItems="center" spacing={1}>
+            <Avatar sx={{ border: "1px dashed" }}>
+              <AddIcon />
+            </Avatar>
+            <Typography color="text.secondary">
+              Add Person
+            </Typography>
+          </Stack>
+        </Card>
       </Box>
 
       {/* ================= Statistics ================= */}
@@ -168,11 +245,13 @@ export default function Dashboard() {
       </Typography>
 
       <Box sx={{ display: "flex", gap: 2, overflowX: "auto" }}>
-        {[1, 2, 3].map(i => (
-          <Card key={i} sx={{ minWidth: 220 }}>
+        {[1, 2, 3].map((i) => (
+          <Card key={i} sx={{ minWidth: 220, flexShrink: 0 }}>
             <CardContent>
               <EmojiEventsIcon color="warning" />
-              <Typography variant="h6">Achievement {i}</Typography>
+              <Typography variant="h6">
+                Achievement {i}
+              </Typography>
               <Typography color="text.secondary">
                 Streak maintained!
               </Typography>
@@ -182,14 +261,4 @@ export default function Dashboard() {
       </Box>
     </Box>
   )
-}
-
-/* ---------------- Helpers ---------------- */
-
-function startAt(dayOffset: number, hour: number) {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() + dayOffset)
-  d.setHours(hour)
-  return d
 }

@@ -78,6 +78,10 @@ const updater = {
   }
 }
 
+const system = {
+  getSystemConfiguration: () => ipcRenderer.invoke('system:get-configuration')
+}
+
 // Placeholder for future app APIs
 const api = {}
 
@@ -93,6 +97,7 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld('electron', electronAPI)
   contextBridge.exposeInMainWorld('api', api)
   contextBridge.exposeInMainWorld('updater', updater)
+  contextBridge.exposeInMainWorld('system', system)
 } else {
   // Fallback for disabled context isolation (not recommended)
   // @ts-ignore
