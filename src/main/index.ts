@@ -5,7 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
 
 
-autoUpdater.setFeedURL({
+const updater = autoUpdater.setFeedURL({
   provider: "github",
   owner: "lincon07",
   repo: "solora",
@@ -14,6 +14,8 @@ autoUpdater.setFeedURL({
   releaseType: 'release',
   
 })
+
+console.log('Updater Configured:', updater);
 autoUpdater.forceDevUpdateConfig = true;
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
@@ -82,11 +84,17 @@ app.whenReady().then(() => {
 // auto  updater events
 autoUpdater.on('update-available', () => {
   BrowserWindow.getAllWindows()[0].webContents.send('update_available');
+  console.log('update available');
 });
 
-autoUpdater.on('update-downloaded', () => {
-  BrowserWindow.getAllWindows()[0].webContents.send('update_downloaded');
-});
+autoUpdater.on("update-downloaded", () => {
+    console.log("Update downloaded, installing…")
+
+    setTimeout(() => {
+      autoUpdater.quitAndInstall(false, true)
+    }, 1000)
+  })
+
 
 ipcMain.on('restart_app', () => {
   autoUpdater.quitAndInstall();
