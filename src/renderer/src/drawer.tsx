@@ -16,9 +16,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import {  Routes, Route, useNavigate } from 'react-router-dom';
 import { Home, Settings } from '@mui/icons-material';
 import SettingsPage from './pages/settings/settings';
 import Dashboard from './pages/dashboard/dashboard';
@@ -152,7 +150,7 @@ export default function MiniDrawer() {
         </DrawerHeader>
         <Divider />
         <List>
-          {[{ title: "Home", path: "/", icon: <Home /> }, { title: "Settings", path: "/settings", icon: <Settings /> }].map((r, index) => (
+          {[{ title: "Home", path: "/", icon: <Home /> }, { title: "Settings", path: "/settings", icon: <Settings /> }].map((r, index: number) => (
             <ListItem key={r.title} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
                 onClick={() => { nav(r.path) }}

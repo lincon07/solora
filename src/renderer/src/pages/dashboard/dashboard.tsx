@@ -23,8 +23,6 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
 import RestaurantIcon from "@mui/icons-material/Restaurant"
 import PersonIcon from "@mui/icons-material/Person"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked"
-import CleaningServicesIcon from "@mui/icons-material/CleaningServices"
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents"
 import InsightsIcon from "@mui/icons-material/Insights"
 
