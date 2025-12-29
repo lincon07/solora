@@ -4,30 +4,46 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
 
-
-const updater = autoUpdater.setFeedURL({
-  provider: "github",
-  owner: "lincon07",
-  repo: "solora",
+/**
+ * ================================
+ * Auto Updater Configuration
+ * ================================
+ */
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'lincon07',
+  repo: 'solora',
   private: false,
   token: process.env.GITHUB_TOKEN,
-  releaseType: 'release',
-  
+  releaseType: 'release'
 })
 
-console.log('Updater Configured:', updater);
-autoUpdater.forceDevUpdateConfig = true;
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.forceDevUpdateConfig = true
 autoUpdater.disableWebInstaller = true
+// autoUpdater.autoDownload = true
+// autoUpdater.autoInstallOnAppQuit = true
 
+/**
+ * Helper to safely broadcast events to all windows
+ */
+function broadcast(channel: string) {
+  BrowserWindow.getAllWindows().forEach(win => {
+    win.webContents.send(channel)
+  })
+}
+
+/**
+ * ================================
+ * Window Creation
+ * ================================
+ */
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    kiosk: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -35,79 +51,95 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+  mainWindow.on('ready-to-show', () => mainWindow.show())
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  mainWindow.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+/**
+ * ================================
+ * App Lifecycle
+ * ================================
+ */
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+    }
   })
 
-  autoUpdater.checkForUpdates();
+  // Initial update check
+  autoUpdater.checkForUpdates()
 })
 
-// auto  updater events
+/**
+ * ================================
+ * AutoUpdater → Renderer Events
+ * ================================
+ */
+
+// Update available
 autoUpdater.on('update-available', () => {
-  BrowserWindow.getAllWindows()[0].webContents.send('update_available');
-  console.log('update available');
-});
+  console.log('[Updater] Update available')
+  broadcast('updater:update-available')
+})
 
-autoUpdater.on("update-downloaded", () => {
-    console.log("Update downloaded, installing…")
+// No update available
+autoUpdater.on('update-not-available', () => {
+  console.log('[Updater] No update available')
+  broadcast('updater:update-not-available')
+})
 
-    setTimeout(() => {
-      autoUpdater.quitAndInstall(false, true)
-    }, 1000)
-  })
+autoUpdater.on('error', (err) => {
+  console.error('[Updater] Error:', err)
+  broadcast('updater:update-error')
+})
+// Update downloaded
+autoUpdater.on('update-downloaded', () => {
+  console.log('[Updater] Update downloaded')
+  broadcast('updater:update-downloaded')
+})
 
+/**
+ * ================================
+ * Renderer → Main Commands
+ * ================================
+ */
 
-ipcMain.on('restart_app', () => {
-  autoUpdater.quitAndInstall();
-});
+// Manual update check
+ipcMain.on('updater:check-for-updates', () => {
+  autoUpdater.checkForUpdates()
+})
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Restart & install
+ipcMain.on('updater:restart', () => {
+  autoUpdater.quitAndInstall(false, true)
+})
+
+/**
+ * ================================
+ * Shutdown Handling
+ * ================================
+ */
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

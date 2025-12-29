@@ -4,5 +4,16 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: unknown
+    updater: {
+      onUpdateAvailable: (cb: () => void) => () => void
+      onUpdateDownloaded: (cb: () => void) => () => void
+      onNoUpdateAvailable: (cb: () => void) => () => void
+
+      onUpdateError: (cb: () => void) => () => void
+      
+      checkForUpdates: () => void
+      restart: () => void
+      removeAllListeners: () => void
+    }
   }
 }
