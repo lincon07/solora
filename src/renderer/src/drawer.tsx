@@ -150,7 +150,7 @@ export default function MiniDrawer() {
         </DrawerHeader>
         <Divider />
         <List>
-          {[{ title: "Home", path: "/", icon: <Home /> }, { title: "Settings", path: "/settings", icon: <Settings /> }].map((r, index: number) => (
+          {[{ title: "Home", path: "/", icon: <Home /> }, { title: "Settings", path: "/settings", icon: <Settings /> }].map((r, _index: number) => (
             <ListItem key={r.title} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
                 onClick={() => { nav(r.path) }}
