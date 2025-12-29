@@ -8,7 +8,7 @@ function App(): React.JSX.Element {
     <>
 
  
-    v0.1.0
+    0.2.0
       <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Powered by electron-vite</div>
       <div className="text">
