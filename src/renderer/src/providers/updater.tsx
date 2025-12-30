@@ -74,19 +74,19 @@ export const UpdaterProvider: React.FC<
 
   /* ---------------- Global Click Listener ---------------- */
 
-  useEffect(() => {
-    const handleClick = () => {
-      playClickSound();
-    };
+//   useEffect(() => {
+//     const handleClick = () => {
+//       playClickSound();
+//     };
 
-    document.addEventListener("click", handleClick);
+//     document.addEventListener("click", handleClick);
 
-    console.log("🔊 Click sound listener enabled");
+//     console.log("🔊 Click sound listener enabled");
 
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  }, []);
+//     return () => {
+//       document.removeEventListener("click", handleClick);
+//     };
+//   }, []);
 
   /* ---------------- Context ---------------- */
 
