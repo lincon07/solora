@@ -13,6 +13,7 @@ declare global {
 
       checkForUpdates: () => void
       restart: () => void
+      confirmUpdate: () => void
       removeAllListeners: () => void
     }
     system: {

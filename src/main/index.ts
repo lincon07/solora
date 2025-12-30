@@ -21,6 +21,7 @@ autoUpdater.setFeedURL({
 
 autoUpdater.forceDevUpdateConfig = true
 autoUpdater.disableWebInstaller = true
+autoUpdater.allowDowngrade = true
 // autoUpdater.autoDownload = true
 // autoUpdater.autoInstallOnAppQuit = true
 
@@ -148,6 +149,10 @@ ipcMain.on('updater:restart', () => {
   autoUpdater.quitAndInstall(false, true)
 })
 
+ipcMain.on('updater:confirm-update', () => {
+  autoUpdater.downloadUpdate()
+  autoUpdater.quitAndInstall(false, true)
+})
 /**
  * ================================
  * Shutdown Handling

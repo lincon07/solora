@@ -63,6 +63,9 @@ const updater = {
     }
   },
 
+  confirmUpdate() {
+    ipcRenderer.send('updater:confirm-update')
+  },
   /**
    * Ask the main process to check for updates
    */
