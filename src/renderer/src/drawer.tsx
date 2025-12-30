@@ -11,6 +11,8 @@ import {
   ListItem,
   ListItemButton,
   ListItemIcon,
+  CircularProgress,
+  Backdrop,
 } from "@mui/material";
 
 import {
@@ -20,6 +22,8 @@ import {
 } from "@mui/icons-material";
 
 import { Routes, Route, useNavigate } from "react-router-dom";
+
+/* ================= Lazy Pages ================= */
 
 const Dashboard = React.lazy(() =>
   import("./pages/dashboard/dashboard")
@@ -32,7 +36,37 @@ const CalendarPage = React.lazy(() =>
 const SettingsPage = React.lazy(() =>
   import("./pages/settings/settings")
 );
+
 const drawerWidth = 220;
+
+/* ================= Loader ================= */
+
+function MainBackdropLoader() {
+  return (
+    <Backdrop
+      open
+      sx={{
+        position: "absolute",
+        inset: 0,
+        zIndex: (theme) => theme.zIndex.modal,
+        bgcolor: "background.default",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <CircularProgress size={36} />
+      <Typography
+        variant="body2"
+        color="text.secondary"
+      >
+        Loading…
+      </Typography>
+    </Backdrop>
+  );
+}
+
+/* ================= Layout ================= */
 
 export default function AppLayout() {
   const nav = useNavigate();
@@ -56,7 +90,7 @@ export default function AppLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* ================= Permanent Drawer ================= */}
+      {/* ================= Drawer ================= */}
       <Drawer
         variant="permanent"
         sx={{
@@ -74,7 +108,8 @@ export default function AppLayout() {
 
         <Box sx={{ overflowY: "auto", px: 1 }}>
           <List disablePadding>
-            {/* ===== Dashboard Section (STATIC, NO COLLAPSE) ===== */}
+
+            {/* Dashboard */}
             <ListItem disablePadding>
               <ListItemButton
                 disableRipple
@@ -85,13 +120,13 @@ export default function AppLayout() {
                 <ListItemIcon sx={{ minWidth: 32 }}>
                   <Home />
                 </ListItemIcon>
-                <Box sx={{ fontSize: 14, fontWeight: 500 }}>
+                <Typography fontSize={14} fontWeight={500}>
                   Dashboard
-                </Box>
+                </Typography>
               </ListItemButton>
             </ListItem>
 
-            {/* ===== Sub-routes ===== */}
+            {/* Sub routes */}
             <ListItem disablePadding>
               <ListItemButton
                 disableRipple
@@ -102,9 +137,9 @@ export default function AppLayout() {
                 <ListItemIcon sx={{ minWidth: 32 }}>
                   <Home fontSize="small" />
                 </ListItemIcon>
-                <Box sx={{ fontSize: 13 }}>
+                <Typography fontSize={13}>
                   Overview
-                </Box>
+                </Typography>
               </ListItemButton>
             </ListItem>
 
@@ -118,15 +153,15 @@ export default function AppLayout() {
                 <ListItemIcon sx={{ minWidth: 32 }}>
                   <CalendarMonth fontSize="small" />
                 </ListItemIcon>
-                <Box sx={{ fontSize: 13 }}>
+                <Typography fontSize={13}>
                   Calendar
-                </Box>
+                </Typography>
               </ListItemButton>
             </ListItem>
 
             <Divider sx={{ my: 1 }} />
 
-            {/* ===== Settings ===== */}
+            {/* Settings */}
             <ListItem disablePadding>
               <ListItemButton
                 disableRipple
@@ -137,11 +172,12 @@ export default function AppLayout() {
                 <ListItemIcon sx={{ minWidth: 32 }}>
                   <Settings />
                 </ListItemIcon>
-                <Box sx={{ fontSize: 14, fontWeight: 500 }}>
+                <Typography fontSize={14} fontWeight={500}>
                   Settings
-                </Box>
+                </Typography>
               </ListItemButton>
             </ListItem>
+
           </List>
         </Box>
       </Drawer>
@@ -153,15 +189,18 @@ export default function AppLayout() {
           flexGrow: 1,
           p: 3,
           overflow: "auto",
+          position: "relative", // 🔥 REQUIRED for Backdrop
         }}
       >
         <Toolbar />
 
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
+        <React.Suspense fallback={<MainBackdropLoader />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
+        </React.Suspense>
       </Box>
     </Box>
   );
