@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { fetchHubMe } from "../../../../api/hubDevices";
+import { fetchHubMe } from "../../../../api/hub";
 import { useHubClaimPairing } from "@renderer/hooks/useHubClaimPairing";
 import { PairQRCode } from "./DevicePairQRCode";
 
@@ -54,7 +54,7 @@ export default function PairSettings() {
     // reload window to acesses token 
 
     window.location.reload();
-    
+
     // After successful claim, reload hub info
     const res = await fetchHubMe();
     setHubId(res.hub.id);

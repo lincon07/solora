@@ -2,28 +2,27 @@
 /* ---------- helpers ---------- */
 
 import { API_BASE } from "@renderer/utils/api_url";
+import { hubAuthHeaders, userAuthHeaders } from "@renderer/utils/headers";
 
-function userAuthHeaders() {
-  return {
-    Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-  };
-}
 
-function hubAuthHeaders() {
-  return {
-    Authorization: `Bearer ${localStorage.getItem("deviceToken")}`,
-  };
-}
 
 /* ---------- API calls ---------- */
 
 export async function fetchHubMe() {
+  console.log("Fetching hub info for current device");
+
   const res = await fetch(`${API_BASE}/hub/me`, {
     headers: hubAuthHeaders(),
   });
+
   if (!res.ok) throw new Error("Failed to fetch hub");
-  return res.json();
+
+  const data = await res.json();
+  console.log("Response from /hub/me:", data);
+
+  return data;
 }
+
 
 export async function startDevicePairing(hubId: string) {
   const res = await fetch(`${API_BASE}/hub/${hubId}/devices/pair`, {

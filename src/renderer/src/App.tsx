@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify';
 import { UpdaterProvider } from './providers/updater';
 import { MyThemeProvider } from './providers/theme/theme';
+import { HubInfoProvider } from './providers/hub-info';
 
 function App(): React.JSX.Element {
 
@@ -11,8 +12,10 @@ function App(): React.JSX.Element {
       <MyThemeProvider>
         <BrowserRouter>
           <UpdaterProvider>
-            <ToastContainer position='bottom-center' />
-            <MiniDrawer />
+            <HubInfoProvider>
+              <ToastContainer position='bottom-center' />
+              <MiniDrawer />
+            </HubInfoProvider>
           </UpdaterProvider>
         </BrowserRouter>
       </MyThemeProvider>

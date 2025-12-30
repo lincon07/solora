@@ -237,10 +237,10 @@ export const MyThemeProvider: React.FC<
   const [playgroundOpen, setPlaygroundOpen] =
     React.useState(false);
   const [mode, setThemeMode] =
-    React.useState<ThemeMode>("light");
+    React.useState<ThemeMode>("dark");
 
   const [design, setDesignMode] =
-    React.useState<DesignMode>("flat");
+    React.useState<DesignMode>("uko");
 
   const resolvedMode =
     mode === "system" ? getSystemTheme() : mode;
