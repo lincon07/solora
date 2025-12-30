@@ -63,6 +63,15 @@ const updater = {
     }
   },
 
+  onDownloadProgress(cb: (progressObj: any) => void) {
+    const listener = (_event: any, progressObj: any) => cb(progressObj)
+    ipcRenderer.on('updater:download-progress', listener)
+
+    return () => {
+      ipcRenderer.removeListener('updater:download-progress', listener)
+    }
+  },
+
   confirmUpdate() {
     ipcRenderer.send('updater:confirm-update')
   },
@@ -85,6 +94,11 @@ const system = {
   getSystemConfiguration: () => ipcRenderer.invoke('system:get-configuration')
 }
 
+const soloras = {
+  pairingComplete: (deviceToken: string) =>
+    ipcRenderer.invoke("pairing:complete", deviceToken),
+
+}
 // Placeholder for future app APIs
 const api = {}
 
@@ -101,6 +115,7 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld('api', api)
   contextBridge.exposeInMainWorld('updater', updater)
   contextBridge.exposeInMainWorld('system', system)
+  contextBridge.exposeInMainWorld('soloras', soloras)
 } else {
   // Fallback for disabled context isolation (not recommended)
   // @ts-ignore

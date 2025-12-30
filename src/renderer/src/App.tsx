@@ -2,7 +2,7 @@ import MiniDrawer from './drawer'
 import { BrowserRouter } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify';
 import { UpdaterProvider } from './providers/updater';
-import { MyThemeProvider } from './providers/theme';
+import { MyThemeProvider } from './providers/theme/theme';
 
 function App(): React.JSX.Element {
 

@@ -13,10 +13,11 @@ import {
   MenuItem,
   Stack,
   Chip,
+  Button,
 } from "@mui/material";
 import { UpdaterContext } from "@renderer/providers/updater";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
-import { MyThemeContext } from "@renderer/providers/theme";
+import { MyThemeContext } from "@renderer/providers/theme/theme";
 
 /* ---------------- Types ---------------- */
 
@@ -149,6 +150,10 @@ export default function SettingsPage() {
     null
   );
 
+
+  useEffect(() => {
+    
+  })
   /* ---------------- Settings Data ---------------- */
 
   const systemSettings = [
@@ -178,12 +183,6 @@ export default function SettingsPage() {
       type: "switch",
       defaultValue: true,
     },
-    {
-      key: "startup",
-      label: "Launch on Startup",
-      description: "Start app when your system boots.",
-      type: "switch",
-    },
   ];
 
   const preferenceSettings = [
@@ -197,12 +196,6 @@ export default function SettingsPage() {
       key: "confirm",
       label: "Confirm Destructive Actions",
       type: "switch",
-      defaultValue: true,
-    },
-    {
-      key: "analytics",
-      label: "Allow Analytics",
-      type: "checkbox",
       defaultValue: true,
     },
   ];
@@ -313,13 +306,38 @@ export default function SettingsPage() {
             />
             <SettingsCard title="Appearance" settings={appearanceSettings as any} />
 
+             <Card sx={{ width: "100%", maxWidth: 900 }}>
+              <CardHeader title="Theme Playground" />
+              <CardContent>
+                <Typography color="text.secondary">
+                  Experiment with custom themes and see changes in real-time.
+                </Typography>
+                <Button variant="outlined" sx={{ mt: 2 }} onClick={() => theme?.handleOpenPlayground(true)}>
+                  Open Theme Playground
+                </Button>
+                {/* Advanced settings can be added here */}
+              </CardContent>
+            </Card>
+
+            <Card sx={{ width: "100%", maxWidth: 900 }}>
+              <CardHeader title="Paired Devices" />
+              <CardContent>
+                <Typography color="text.secondary">
+                  Scan the QR code on your device to add another device to acesss your Soloras Hub.
+                </Typography>
+
+                {}
+                {/* Advanced settings can be added here */}
+              </CardContent>
+            </Card>
+
             {/* ================= System Info ================= */}
             <Box
               sx={{
                 width: "100%",
                 mt: 6,
                 pt: 3,
-                borderTop: "1px solid",
+                borderTop: "1px solid",     
                 borderColor: "divider",
                 display: "flex",
                 justifyContent: "space-between",

@@ -4,7 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
 import { cpuUsage } from 'process'
-
+import "./pairing-ipc"
+import { getDeviceToken } from './device'
 /**
  * ================================
  * Auto Updater Configuration
@@ -18,6 +19,10 @@ autoUpdater.setFeedURL({
   token: process.env.GITHUB_TOKEN,
   releaseType: 'release'
 })
+// is development mode
+const apiURL = is.dev
+  ? 'http://0.0.0.0:3008'
+  : 'https://solora-api-841c6cc58685.herokuapp.com'
 
 autoUpdater.forceDevUpdateConfig = true
 autoUpdater.disableWebInstaller = true
@@ -28,19 +33,25 @@ autoUpdater.allowDowngrade = true
 /**
  * Helper to safely broadcast events to all windows
  */
-function broadcast(channel: string) {
+function broadcast(channel: string, ...args: any[]) {
   BrowserWindow.getAllWindows().forEach(win => {
-    win.webContents.send(channel)
+    win.webContents.send(channel, ...args)
   })
 }
+
+
+
 
 /**
  * ================================
  * Window Creation
  * ================================
  */
+
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -53,19 +64,45 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => mainWindow.show())
+  const deviceToken = getDeviceToken()
+
+  const route = deviceToken ? "/" : "/settings/pair"
+
+  let loadUrl: string
+
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    loadUrl = `${process.env.ELECTRON_RENDERER_URL}${route}`
+  } else {
+    loadUrl = `file://${join(__dirname, '../renderer/index.html')}#${route}`
+  }
+
+  mainWindow.loadURL(loadUrl)
+
+
+
+  mainWindow.on('ready-to-show', () => mainWindow?.show())
 
   mainWindow.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  setInterval(async () => {
+    try {
+      await fetch(`${apiURL}/hub/heartbeat`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${deviceToken}`,
+        },
+      })
+    } catch (err) {
+      console.error("Heartbeat failed", err)
+    }
+  }, 15_000)
+
+
 }
+
 
 /**
  * ================================
@@ -119,7 +156,11 @@ autoUpdater.on('update-downloaded', () => {
   broadcast('updater:update-downloaded')
 })
 
-
+autoUpdater.on('download-progress', (progressObj) => {
+  console.log(`[Updater] Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`)
+  // send progress to renderer if needed
+  broadcast('updater:download-progress', progressObj)
+})
 
 // ststem configuration fetch
 ipcMain.handle('system:get-configuration', async () => {
@@ -153,6 +194,7 @@ ipcMain.on('updater:confirm-update', () => {
   autoUpdater.downloadUpdate()
   autoUpdater.quitAndInstall(false, true)
 })
+
 /**
  * ================================
  * Shutdown Handling

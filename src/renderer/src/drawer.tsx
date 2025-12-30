@@ -19,9 +19,11 @@ import {
   Home,
   Settings,
   CalendarMonth,
+  DeviceHub,
 } from "@mui/icons-material";
 
 import { Routes, Route, useNavigate } from "react-router-dom";
+import PairSettings from "./pages/settings/pairing/pair";
 
 /* ================= Lazy Pages ================= */
 
@@ -70,7 +72,6 @@ function MainBackdropLoader() {
 
 export default function AppLayout() {
   const nav = useNavigate();
-
   return (
     <Box sx={{ display: "flex", width: "100vw", height: "100vh" }}>
       <CssBaseline />
@@ -178,6 +179,23 @@ export default function AppLayout() {
               </ListItemButton>
             </ListItem>
 
+              <ListItem disablePadding>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ pl: 4, gap: 2 }}
+                onClick={() => nav("/settings/pair")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <DeviceHub fontSize="small" />
+                </ListItemIcon>
+                <Typography fontSize={13}>
+                  Devices
+                </Typography>
+              </ListItemButton>
+            </ListItem>
+
+
           </List>
         </Box>
       </Drawer>
@@ -199,6 +217,7 @@ export default function AppLayout() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings/pair" element={<PairSettings />} />
           </Routes>
         </React.Suspense>
       </Box>

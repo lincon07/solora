@@ -36,6 +36,26 @@ export const UpdaterProvider: React.FC<
             toast.info("No update available");
         });
 
+        const offDownloadProgress = window.updater.onDownloadProgress((progressObj) => {
+            console.log(`Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`);
+            // Optionally, you can show download progress in the UI
+            toast.promise(
+                new Promise<void>((resolve) => {
+                    if (progressObj.percent >= 100) {
+                        resolve();
+                    }
+                }), {
+                pending: `Downloading update: ${progressObj.percent.toFixed(2)}%`,
+                success: 'Download complete!',
+                error: 'Error downloading update'
+            },
+                {
+                    autoClose: false
+                }
+            )
+        });
+
+
         const offError = window.updater.onUpdateError(() => {
             toast.error("Error checking for updates");
         });
@@ -44,6 +64,7 @@ export const UpdaterProvider: React.FC<
             offAvailable();
             offDownloaded();
             offNoUpdate();
+            offDownloadProgress();
             offError();
         };
     }, []);
