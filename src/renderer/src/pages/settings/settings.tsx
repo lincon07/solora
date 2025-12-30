@@ -117,7 +117,7 @@ function SettingsCard({
                   case "select":
                     return (
                       <Select size="small" defaultValue={s.defaultValue}>
-                        {s.options?.map((o) => (
+                        {s.options?.map((o: { label: string; value: string; action?: () => void }) => (
                           <MenuItem key={o.value} value={o.value} onClick={() => {
                             if (o?.action) {
                               o?.action();
@@ -305,13 +305,13 @@ export default function SettingsPage() {
           >
             <SettingsCard
               title="System Configuration"
-              settings={systemSettings}
+              settings={systemSettings as any}
             />
             <SettingsCard
               title="User Preferences"
-              settings={preferenceSettings}
+              settings={preferenceSettings as any}
             />
-            <SettingsCard title="Appearance" settings={appearanceSettings} />
+            <SettingsCard title="Appearance" settings={appearanceSettings as any} />
 
             {/* ================= System Info ================= */}
             <Box

@@ -1,7 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useSound } from "react-sounds";
-import effect from "../../../../resources/solora_media_click.mp3";
 
 export interface UpdaterContextType {
   checkForUpdates: () => Promise<void>;
@@ -13,32 +11,7 @@ export const UpdaterContext =
 export const UpdaterProvider: React.FC<
   React.PropsWithChildren
 > = ({ children }) => {
-  /* ---------------- Sound ---------------- */
 
-  const { play, stop } = useSound(effect, {
-    volume: 0.35,
-  });
-
-  const isPlayingRef = useRef(false);
-  const lastPlayRef = useRef(0);
-
-  const PLAY_COOLDOWN_MS = 120; // 👌 subtle, non-spammy
-
-  const playClickSound = () => {
-    const now = Date.now();
-
-    if (isPlayingRef.current) return;
-    if (now - lastPlayRef.current < PLAY_COOLDOWN_MS) return;
-
-    isPlayingRef.current = true;
-    lastPlayRef.current = now;
-
-    play();
-
-    setTimeout(() => {
-      isPlayingRef.current = false;
-    }, PLAY_COOLDOWN_MS);
-  };
 
   /* ---------------- Updates ---------------- */
 
