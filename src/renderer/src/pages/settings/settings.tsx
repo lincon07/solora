@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { UpdaterContext } from "@renderer/providers/updater";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import { MyThemeContext } from "@renderer/providers/theme";
 
 /* ---------------- Types ---------------- */
 
@@ -117,7 +118,11 @@ function SettingsCard({
                     return (
                       <Select size="small" defaultValue={s.defaultValue}>
                         {s.options?.map((o) => (
-                          <MenuItem key={o.value} value={o.value}>
+                          <MenuItem key={o.value} value={o.value} onClick={() => {
+                            if (o?.action) {
+                              o?.action();
+                            }   
+                            }}>
                             {o.label}
                           </MenuItem>
                         ))}
@@ -138,6 +143,7 @@ function SettingsCard({
 
 export default function SettingsPage() {
   const updater = React.useContext(UpdaterContext);
+  const theme = React.useContext(MyThemeContext);
   const [cozyMode] = React.useState(true);
   const [systemConfig, setSystemConfig] = React.useState<SystemConfig | null>(
     null
@@ -152,6 +158,18 @@ export default function SettingsPage() {
       description: "Play sound effects for interactions.",
       type: "switch",
       defaultValue: true,
+    },
+     {
+      key: "theme",
+      label: "Theme",
+      description: "Select the application theme.",
+      type: "select",
+      defaultValue: "light",
+      options: [
+        { label: "Light", value: "light", action: () => {theme?.setThemeMode('light')} },
+        { label: "Dark", value: "dark", action: () => {theme?.setThemeMode('dark')} },
+        { label: "System", value: "system", action: () => {theme?.setThemeMode('system')} },
+      ],
     },
     {
       key: "updates",
@@ -244,7 +262,7 @@ export default function SettingsPage() {
         >
           {/* Left */}
           <Stack direction="row" spacing={2} alignItems="center">
-            <Box>
+                <Box>
               <Typography variant="h4" fontWeight={700}>
                 Settings
               </Typography>

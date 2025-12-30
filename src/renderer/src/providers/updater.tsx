@@ -1,53 +1,102 @@
-import React, { useEffect } from "react";
-import { toast } from 'react-toastify';
-
+import React, { useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { useSound } from "react-sounds";
+import effect from "../../../../resources/solora_media_click.mp3";
 
 export interface UpdaterContextType {
-    checkForUpdates: () => Promise<void>;
+  checkForUpdates: () => Promise<void>;
 }
 
-export const UpdaterContext = React.createContext<UpdaterContextType | null>(null);
+export const UpdaterContext =
+  React.createContext<UpdaterContextType | null>(null);
 
+export const UpdaterProvider: React.FC<
+  React.PropsWithChildren
+> = ({ children }) => {
+  /* ---------------- Sound ---------------- */
 
-export const UpdaterProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  const { play, stop } = useSound(effect, {
+    volume: 0.35,
+  });
 
-    const checkForUpdates = async () => {
-        window?.updater?.checkForUpdates();
-    }
+  const isPlayingRef = useRef(false);
+  const lastPlayRef = useRef(0);
 
-    useEffect(() => {
-        const offAvailable = window.updater.onUpdateAvailable(() => {
-            toast.info('Update available')
-        })
+  const PLAY_COOLDOWN_MS = 120; // 👌 subtle, non-spammy
 
-        const offDownloaded = window.updater.onUpdateDownloaded(() => {
-            toast.success('Update ready — restarting')
-            setTimeout(() => window.updater.restart(), 1500)
-        })
+  const playClickSound = () => {
+    const now = Date.now();
 
-        const offNoUpdate = window.updater.onNoUpdateAvailable(() => {
-            toast.info('No update available')
-        })
+    if (isPlayingRef.current) return;
+    if (now - lastPlayRef.current < PLAY_COOLDOWN_MS) return;
 
-        const offError = window.updater.onUpdateError(() => {
-            toast.error('Error checking for updates')
-        })
+    isPlayingRef.current = true;
+    lastPlayRef.current = now;
 
-        return () => {
-            offAvailable()
-            offDownloaded()
-            offNoUpdate()
-            offError()
-        }
-    }, [])
+    play();
 
+    setTimeout(() => {
+      isPlayingRef.current = false;
+    }, PLAY_COOLDOWN_MS);
+  };
 
-    const value: UpdaterContextType = {
-        checkForUpdates,
-    }
-    return (
-        <UpdaterContext.Provider value={value}>
-            {children}
-        </UpdaterContext.Provider>
-    )
-}
+  /* ---------------- Updates ---------------- */
+
+  const checkForUpdates = async () => {
+    window?.updater?.checkForUpdates();
+  };
+
+  useEffect(() => {
+    const offAvailable = window.updater.onUpdateAvailable(() => {
+      toast.info("Update available");
+    });
+
+    const offDownloaded = window.updater.onUpdateDownloaded(() => {
+      toast.success("Update ready — restarting");
+      setTimeout(() => window.updater.restart(), 1500);
+    });
+
+    const offNoUpdate = window.updater.onNoUpdateAvailable(() => {
+      toast.info("No update available");
+    });
+
+    const offError = window.updater.onUpdateError(() => {
+      toast.error("Error checking for updates");
+    });
+
+    return () => {
+      offAvailable();
+      offDownloaded();
+      offNoUpdate();
+      offError();
+    };
+  }, []);
+
+  /* ---------------- Global Click Listener ---------------- */
+
+  useEffect(() => {
+    const handleClick = () => {
+      playClickSound();
+    };
+
+    document.addEventListener("click", handleClick);
+
+    console.log("🔊 Click sound listener enabled");
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+
+  /* ---------------- Context ---------------- */
+
+  const value: UpdaterContextType = {
+    checkForUpdates,
+  };
+
+  return (
+    <UpdaterContext.Provider value={value}>
+      {children}
+    </UpdaterContext.Provider>
+  );
+};

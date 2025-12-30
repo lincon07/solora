@@ -65,7 +65,9 @@
     "@mui/material": "^7.3.6",
     "@mui/x-charts": "^8.23.0",
     "electron-updater": "^6.3.9",
+    "howler": "^2.2.4",
     "react-router-dom": "^7.11.0",
+    "react-sounds": "^1.0.25",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {

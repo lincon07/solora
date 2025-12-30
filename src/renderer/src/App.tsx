@@ -8,14 +8,14 @@ function App(): React.JSX.Element {
 
   return (
     <div>
-      <BrowserRouter>
-        <UpdaterProvider>
-          <MyThemeProvider> 
-          <ToastContainer position='bottom-center' />
-          <MiniDrawer />
-          </MyThemeProvider>
-        </UpdaterProvider>
-      </BrowserRouter>
+      <MyThemeProvider>
+        <BrowserRouter>
+          <UpdaterProvider>
+            <ToastContainer position='bottom-center' />
+            <MiniDrawer />
+          </UpdaterProvider>
+        </BrowserRouter>
+      </MyThemeProvider>
     </div>
   )
 }

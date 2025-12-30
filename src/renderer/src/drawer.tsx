@@ -29,7 +29,7 @@ import Dashboard from "./pages/dashboard/dashboard";
 import CalendarPage from "./pages/calander/calander";
 import SettingsPage from "./pages/settings/settings";
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 export default function AppLayout() {
   const nav = useNavigate();
@@ -37,7 +37,6 @@ export default function AppLayout() {
 
   return (
     <Box sx={{ display: "flex", width: "100vw", height: "100vh" }}>
-      <CssBaseline />
 
       {/* ================= AppBar ================= */}
       <AppBar
