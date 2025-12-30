@@ -11,42 +11,46 @@ import {
   ListItem,
   ListItemButton,
   ListItemIcon,
-  ListItemText,
-  Collapse,
 } from "@mui/material";
 
 import {
   Home,
   Settings,
   CalendarMonth,
-  ExpandLess,
-  ExpandMore,
 } from "@mui/icons-material";
 
 import { Routes, Route, useNavigate } from "react-router-dom";
 
-import Dashboard from "./pages/dashboard/dashboard";
-import CalendarPage from "./pages/calander/calander";
-import SettingsPage from "./pages/settings/settings";
+const Dashboard = React.lazy(() =>
+  import("./pages/dashboard/dashboard")
+);
 
+const CalendarPage = React.lazy(() =>
+  import("./pages/calander/calander")
+);
+
+const SettingsPage = React.lazy(() =>
+  import("./pages/settings/settings")
+);
 const drawerWidth = 220;
 
 export default function AppLayout() {
   const nav = useNavigate();
-  const [dashboardOpen, setDashboardOpen] = React.useState(true);
 
   return (
     <Box sx={{ display: "flex", width: "100vw", height: "100vh" }}>
+      <CssBaseline />
 
       {/* ================= AppBar ================= */}
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
         <Toolbar>
-          <Typography variant="h6" noWrap>
+          <Typography fontWeight={600}>
             Solora
           </Typography>
         </Toolbar>
@@ -61,50 +65,81 @@ export default function AppLayout() {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
+            borderRight: "1px solid",
+            borderColor: "divider",
           },
         }}
       >
         <Toolbar />
-        <Box sx={{ overflowY: "auto" }}>
-          <List>
-            {/* ===== Dashboard Group ===== */}
+
+        <Box sx={{ overflowY: "auto", px: 1 }}>
+          <List disablePadding>
+            {/* ===== Dashboard Section (STATIC, NO COLLAPSE) ===== */}
             <ListItem disablePadding>
-              <ListItemButton onClick={() => setDashboardOpen((v) => !v)}>
-                <ListItemIcon>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ gap: 2 }}
+                onClick={() => nav("/")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
                   <Home />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" />
-                {dashboardOpen ? <ExpandLess /> : <ExpandMore />}
+                <Box sx={{ fontSize: 14, fontWeight: 500 }}>
+                  Dashboard
+                </Box>
               </ListItemButton>
             </ListItem>
 
-            <Collapse in={dashboardOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItemButton sx={{ pl: 4 }} onClick={() => nav("/")}>
-                  <ListItemIcon>
-                    <Home fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Overview" />
-                </ListItemButton>
+            {/* ===== Sub-routes ===== */}
+            <ListItem disablePadding>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ pl: 4, gap: 2 }}
+                onClick={() => nav("/")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <Home fontSize="small" />
+                </ListItemIcon>
+                <Box sx={{ fontSize: 13 }}>
+                  Overview
+                </Box>
+              </ListItemButton>
+            </ListItem>
 
-                <ListItemButton sx={{ pl: 4 }} onClick={() => nav("/calendar")}>
-                  <ListItemIcon>
-                    <CalendarMonth fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Calendar" />
-                </ListItemButton>
-              </List>
-            </Collapse>
+            <ListItem disablePadding>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ pl: 4, gap: 2 }}
+                onClick={() => nav("/calendar")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <CalendarMonth fontSize="small" />
+                </ListItemIcon>
+                <Box sx={{ fontSize: 13 }}>
+                  Calendar
+                </Box>
+              </ListItemButton>
+            </ListItem>
 
             <Divider sx={{ my: 1 }} />
 
             {/* ===== Settings ===== */}
             <ListItem disablePadding>
-              <ListItemButton onClick={() => nav("/settings")}>
-                <ListItemIcon>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ gap: 2 }}
+                onClick={() => nav("/settings")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
                   <Settings />
                 </ListItemIcon>
-                <ListItemText primary="Settings" />
+                <Box sx={{ fontSize: 14, fontWeight: 500 }}>
+                  Settings
+                </Box>
               </ListItemButton>
             </ListItem>
           </List>
