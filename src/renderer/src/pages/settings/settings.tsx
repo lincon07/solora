@@ -18,6 +18,7 @@ import {
 import { UpdaterContext } from "@renderer/providers/updater";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
+import MembersManagement from "./members-managment";
 
 /* ---------------- Types ---------------- */
 
@@ -122,8 +123,8 @@ function SettingsCard({
                           <MenuItem key={o.value} value={o.value} onClick={() => {
                             if (o?.action) {
                               o?.action();
-                            }   
-                            }}>
+                            }
+                          }}>
                             {o.label}
                           </MenuItem>
                         ))}
@@ -150,10 +151,6 @@ export default function SettingsPage() {
     null
   );
 
-
-  useEffect(() => {
-    
-  })
   /* ---------------- Settings Data ---------------- */
 
   const systemSettings = [
@@ -163,18 +160,6 @@ export default function SettingsPage() {
       description: "Play sound effects for interactions.",
       type: "switch",
       defaultValue: true,
-    },
-     {
-      key: "theme",
-      label: "Theme",
-      description: "Select the application theme.",
-      type: "select",
-      defaultValue: "light",
-      options: [
-        { label: "Light", value: "light", action: () => {theme?.setThemeMode('light')} },
-        { label: "Dark", value: "dark", action: () => {theme?.setThemeMode('dark')} },
-        { label: "System", value: "system", action: () => {theme?.setThemeMode('system')} },
-      ],
     },
     {
       key: "updates",
@@ -201,24 +186,42 @@ export default function SettingsPage() {
   ];
 
   const appearanceSettings = [
-    {
-      key: "cozy",
-      label: "Cozy Mode",
-      description: "Increase spacing and control sizes (Discord-style).",
-      type: "switch",
-      defaultValue: true,
-    },
-    {
-      key: "dashboard",
-      label: "Default Dashboard",
+        {
+      key: "theme",
+      label: "Theme",
+      description: "Select the application theme.",
       type: "select",
-      defaultValue: "overview",
+      defaultValue: theme?.mode || "system",
       options: [
-        { label: "Overview", value: "overview" },
-        { label: "Analytics", value: "analytics" },
-        { label: "Activity", value: "activity" },
+        { label: "Light", value: "light", action: () => { theme?.setThemeMode('light') } },
+        { label: "Dark", value: "dark", action: () => { theme?.setThemeMode('dark') } },
+        { label: "System", value: "system", action: () => { theme?.setThemeMode('system') } },
       ],
     },
+    {
+      key: "design",
+      label: "Design",
+      description: "Select the application design.",
+      type: "select",
+      defaultValue: theme?.design || "uko",
+      options: [
+        { label: "Uko", value: "uko", action: () => { theme?.setDesignMode('uko') } },
+        { label: "Flat", value: "flat", action: () => { theme?.setDesignMode('flat') } },
+
+      ],
+    },
+    {
+      key: "density",
+      label: "Density",
+      description: "Select the application density.",
+      type: "select",
+      defaultValue: theme?.density || "cozy",
+      options: [
+        { label: "Cozy", value: "cozy", action: () => { theme?.setDensityMode('cozy') } },
+        { label: "Compact", value: "compact", action: () => { theme?.setDensityMode('compact') } },
+
+      ],
+    }
   ];
 
   /* ---------------- System Info Fetch ---------------- */
@@ -255,7 +258,7 @@ export default function SettingsPage() {
         >
           {/* Left */}
           <Stack direction="row" spacing={2} alignItems="center">
-                <Box>
+            <Box>
               <Typography variant="h4" fontWeight={700}>
                 Settings
               </Typography>
@@ -306,7 +309,7 @@ export default function SettingsPage() {
             />
             <SettingsCard title="Appearance" settings={appearanceSettings as any} />
 
-             <Card sx={{ width: "100%", maxWidth: 900 }}>
+            <Card sx={{ width: "100%", maxWidth: 900 }}>
               <CardHeader title="Theme Playground" />
               <CardContent>
                 <Typography color="text.secondary">
@@ -326,18 +329,19 @@ export default function SettingsPage() {
                   Scan the QR code on your device to add another device to acesss your Soloras Hub.
                 </Typography>
 
-                {}
+                { }
                 {/* Advanced settings can be added here */}
               </CardContent>
             </Card>
 
+            <MembersManagement />
             {/* ================= System Info ================= */}
             <Box
               sx={{
                 width: "100%",
                 mt: 6,
                 pt: 3,
-                borderTop: "1px solid",     
+                borderTop: "1px solid",
                 borderColor: "divider",
                 display: "flex",
                 justifyContent: "space-between",

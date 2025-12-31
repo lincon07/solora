@@ -1,54 +1,51 @@
 import { api } from "./client";
 
-/* =========================================================
- * Types
- * ========================================================= */
-
 export type HubMember = {
   id: string;
   hubId: string;
   displayName: string;
-  avatarUrl?: string | null;
   role: string;
   isActive: boolean;
   createdAt: string;
+  avatarUrl?: string | null;
 };
 
-/* =========================================================
- * Fetch members for a hub
- * ========================================================= */
-
-export async function fetchHubMembers(hubId: string) {
-  if (!hubId) {
-    throw new Error("hubId is required to fetch members");
-  }
-
+export function fetchHubMembers(hubId: string) {
   return api<{ hubId: string; members: HubMember[] }>(
     `/hub/${hubId}/info/members`
   );
 }
 
-/* =========================================================
- * Create member (kiosk-side, hub token)
- * ========================================================= */
-
-export async function createHubMember(
+export function createHubMember(
   hubId: string,
-  input: {
-    displayName: string;
-    avatarUrl?: string;
-    role?: string;
-  }
+  input: { displayName: string; role?: string; avatarUrl?: string | null }
 ) {
-  if (!hubId) {
-    throw new Error("hubId is required to create member");
-  }
-
   return api<{ member: HubMember }>(
     `/hub/${hubId}/members`,
     {
       method: "POST",
       body: JSON.stringify(input),
     }
+  );
+}
+
+export function updateHubMember(
+  hubId: string,
+  memberId: string,
+  input: { displayName?: string; role?: string; isActive?: boolean, avatarUrl?: string | null }
+) {
+  return api<{ member: HubMember }>(
+    `/hub/${hubId}/members/${memberId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }
+  );
+}
+
+export function deleteHubMember(hubId: string, memberId: string) {
+  return api(
+    `/hub/${hubId}/members/${memberId}`,
+    { method: "DELETE" }
   );
 }

@@ -4,18 +4,21 @@ import { CssBaseline } from "@mui/material";
 import { ThemePlaygroundModal } from "./ThemePlaygroundModal";
 
 /* =========================================================
- * Context Types
+ * Types
  * ========================================================= */
 
 export type ThemeMode = "light" | "dark" | "system";
 export type DesignMode = "uko" | "flat";
+export type DensityMode = "cozy" | "compact";
 
 export interface MyThemeContextType {
   mode: ThemeMode;
   design: DesignMode;
+  density: DensityMode;
   darkMode: boolean;
   setThemeMode: (mode: ThemeMode) => void;
   setDesignMode: (design: DesignMode) => void;
+  setDensityMode: (density: DensityMode) => void;
   handleOpenPlayground: (open: boolean) => void;
 }
 
@@ -23,7 +26,7 @@ export const MyThemeContext =
   React.createContext<MyThemeContextType | null>(null);
 
 /* =========================================================
- * System Preference
+ * System Theme
  * ========================================================= */
 
 function getSystemTheme(): "light" | "dark" {
@@ -34,11 +37,37 @@ function getSystemTheme(): "light" | "dark" {
 }
 
 /* =========================================================
- * UKO THEME (Structured / Border-based)
+ * Density Helpers (THE MAGIC)
  * ========================================================= */
 
-function createUKOTheme(mode: "light" | "dark") {
+function densityVars(density: DensityMode) {
+  return density === "cozy"
+    ? {
+        buttonY: 10,
+        buttonX: 18,
+        inputY: 14,
+        listItemY: 12,
+        borderRadius: 12,
+      }
+    : {
+        buttonY: 6,
+        buttonX: 12,
+        inputY: 8,
+        listItemY: 6,
+        borderRadius: 8,
+      };
+}
+
+/* =========================================================
+ * UKO THEME
+ * ========================================================= */
+
+function createUKOTheme(
+  mode: "light" | "dark",
+  density: DensityMode
+) {
   const isDark = mode === "dark";
+  const d = densityVars(density);
 
   return createTheme({
     palette: {
@@ -57,7 +86,9 @@ function createUKOTheme(mode: "light" | "dark") {
         : "rgba(17,24,39,0.08)",
     },
 
-    shape: { borderRadius: 10 },
+    shape: {
+      borderRadius: d.borderRadius,
+    },
 
     typography: {
       fontFamily:
@@ -87,10 +118,11 @@ function createUKOTheme(mode: "light" | "dark") {
         styleOverrides: {
           root: {
             backgroundImage: "none",
-            border: `1px solid ${isDark
+            border: `1px solid ${
+              isDark
                 ? "rgba(255,255,255,0.08)"
                 : "rgba(17,24,39,0.08)"
-              }`,
+            }`,
           },
         },
       },
@@ -98,12 +130,8 @@ function createUKOTheme(mode: "light" | "dark") {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: d.borderRadius,
             boxShadow: "none",
-            border: `1px solid ${isDark
-                ? "rgba(255,255,255,0.08)"
-                : "rgba(17,24,39,0.08)"
-              }`,
           },
         },
       },
@@ -112,9 +140,26 @@ function createUKOTheme(mode: "light" | "dark") {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: {
-            borderRadius: 8,
-            paddingInline: 14,
-            paddingBlock: 8,
+            borderRadius: d.borderRadius,
+            paddingInline: d.buttonX,
+            paddingBlock: d.buttonY,
+          },
+        },
+      },
+
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            paddingBlock: d.inputY,
+          },
+        },
+      },
+
+      MuiListItem: {
+        styleOverrides: {
+          root: {
+            paddingTop: d.listItemY,
+            paddingBottom: d.listItemY,
           },
         },
       },
@@ -123,11 +168,15 @@ function createUKOTheme(mode: "light" | "dark") {
 }
 
 /* =========================================================
- * FLAT THEME (No borders, no shadows)
+ * FLAT THEME
  * ========================================================= */
 
-function createFlatTheme(mode: "light" | "dark") {
+function createFlatTheme(
+  mode: "light" | "dark",
+  density: DensityMode
+) {
   const isDark = mode === "dark";
+  const d = densityVars(density);
 
   return createTheme({
     palette: {
@@ -141,12 +190,12 @@ function createFlatTheme(mode: "light" | "dark") {
         primary: isDark ? "#E5E7EB" : "#0F172A",
         secondary: isDark ? "#94A3B8" : "#475569",
       },
-
-      // ✅ FIX: must be rgba(), NOT "transparent"
       divider: "rgba(0,0,0,0)",
     },
 
-    shape: { borderRadius: 6 },
+    shape: {
+      borderRadius: d.borderRadius,
+    },
 
     typography: {
       fontFamily:
@@ -176,23 +225,13 @@ function createFlatTheme(mode: "light" | "dark") {
         },
       },
 
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            border: "none",
-            boxShadow: "none",
-            backgroundColor: "transparent",
-          },
-        },
-      },
-
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: {
             borderRadius: 999,
-            paddingInline: 16,
-            paddingBlock: 10,
+            paddingInline: d.buttonX,
+            paddingBlock: d.buttonY,
           },
         },
       },
@@ -200,13 +239,21 @@ function createFlatTheme(mode: "light" | "dark") {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
-            borderRadius: 8,
+            borderRadius: d.borderRadius,
+            paddingBlock: d.inputY,
             backgroundColor: isDark
               ? "rgba(255,255,255,0.04)"
               : "rgba(0,0,0,0.03)",
-            "& fieldset": {
-              border: "none",
-            },
+            "& fieldset": { border: "none" },
+          },
+        },
+      },
+
+      MuiListItem: {
+        styleOverrides: {
+          root: {
+            paddingTop: d.listItemY,
+            paddingBottom: d.listItemY,
           },
         },
       },
@@ -215,16 +262,17 @@ function createFlatTheme(mode: "light" | "dark") {
 }
 
 /* =========================================================
- * Theme Resolver
+ * Resolver
  * ========================================================= */
 
 function resolveTheme(
   design: DesignMode,
-  mode: "light" | "dark"
+  mode: "light" | "dark",
+  density: DensityMode
 ) {
   return design === "flat"
-    ? createFlatTheme(mode)
-    : createUKOTheme(mode);
+    ? createFlatTheme(mode, density)
+    : createUKOTheme(mode, density);
 }
 
 /* =========================================================
@@ -234,27 +282,18 @@ function resolveTheme(
 export const MyThemeProvider: React.FC<
   React.PropsWithChildren
 > = ({ children }) => {
-  const [playgroundOpen, setPlaygroundOpen] =
-    React.useState(false);
-  const [mode, setThemeMode] =
-    React.useState<ThemeMode>("dark");
-
-  const [design, setDesignMode] =
-    React.useState<DesignMode>("uko");
+  const [playgroundOpen, setPlaygroundOpen] = React.useState(false);
+  const [mode, setThemeMode] = React.useState<ThemeMode>("dark");
+  const [design, setDesignMode] = React.useState<DesignMode>("uko");
+  const [density, setDensityMode] =
+    React.useState<DensityMode>("cozy");
 
   const resolvedMode =
     mode === "system" ? getSystemTheme() : mode;
 
   const theme = React.useMemo(
-    () => resolveTheme(design, resolvedMode),
-    [design, resolvedMode]
-  );
-
-  const handleOpenPlayground = React.useCallback(
-    (open: boolean) => {
-      setPlaygroundOpen(open);
-    },
-    []
+    () => resolveTheme(design, resolvedMode, density),
+    [design, resolvedMode, density]
   );
 
   return (
@@ -262,10 +301,12 @@ export const MyThemeProvider: React.FC<
       value={{
         mode,
         design,
+        density,
         darkMode: resolvedMode === "dark",
         setThemeMode,
         setDesignMode,
-        handleOpenPlayground,
+        setDensityMode,
+        handleOpenPlayground: setPlaygroundOpen,
       }}
     >
       <ThemeProvider theme={theme}>
