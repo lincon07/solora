@@ -1,7 +1,7 @@
 {
   "name": "solora",
-  "version": "0.1.4",
-  "description": "An Electron application with React and TypeScript",
+  "version": "0.1.6",
+  "description": "Solora Kiosk Application",
   "main": "./out/main/index.js",
   "author": {
     "name": "Lincoln Peak",
