@@ -19,6 +19,7 @@ import { UpdaterContext } from "@renderer/providers/updater";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
+import DangerArea from "./danger-area/danger-area";
 
 /* ---------------- Types ---------------- */
 
@@ -335,6 +336,8 @@ export default function SettingsPage() {
             </Card>
 
             <MembersManagement />
+
+            <DangerArea />
             {/* ================= System Info ================= */}
             <Box
               sx={{

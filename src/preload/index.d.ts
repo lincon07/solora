@@ -21,6 +21,11 @@ declare global {
     }
     system: {
       getSystemConfiguration: () => Promise<any>
+    },
+    danger: {
+      clearDeviceToken: () => Promise<void>
+      clearCache: () => Promise<void>
+      factoryResetLocal: () => Promise<void>
     }
   }
 }

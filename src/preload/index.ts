@@ -90,6 +90,7 @@ const updater = {
   }
 }
 
+
 const system = {
   getSystemConfiguration: () => ipcRenderer.invoke('system:get-configuration')
 }
@@ -116,6 +117,16 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld('updater', updater)
   contextBridge.exposeInMainWorld('system', system)
   contextBridge.exposeInMainWorld('soloras', soloras)
+  contextBridge.exposeInMainWorld("danger", {
+    clearDeviceToken: () =>
+      ipcRenderer.invoke("danger:clear-device-token"),
+
+    clearCache: () =>
+      ipcRenderer.invoke("danger:clear-cache"),
+
+    factoryResetLocal: () =>
+      ipcRenderer.invoke("danger:factory-reset-local"),
+  });
 } else {
   // Fallback for disabled context isolation (not recommended)
   // @ts-ignore
