@@ -21,7 +21,7 @@ autoUpdater.setFeedURL({
 })
 // is development mode
 const apiURL = is.dev
-  ? 'http://0.0.0.0:3008'
+  ? 'http://10.0.0.229:3008' // <-- your LAN IP
   : 'https://solora-api-841c6cc58685.herokuapp.com'
 
 autoUpdater.forceDevUpdateConfig = true
@@ -135,6 +135,7 @@ app.whenReady().then(() => {
  */
 
 // Update available
+let canRestart = false
 autoUpdater.on('update-available', () => {
   console.log('[Updater] Update available')
   broadcast('updater:update-available')
@@ -162,6 +163,11 @@ autoUpdater.on('download-progress', (progressObj) => {
   broadcast('updater:download-progress', progressObj)
 })
 
+autoUpdater.on('update-downloaded', () => {
+  console.log('[Updater] Update downloaded and ready to install')
+  broadcast('updater:update-downloaded')
+  canRestart = true
+})
 // ststem configuration fetch
 ipcMain.handle('system:get-configuration', async () => {
   // Here you can gather and return system configuration details
@@ -187,7 +193,11 @@ ipcMain.on('updater:check-for-updates', () => {
 
 // Restart & install
 ipcMain.on('updater:restart', () => {
-  autoUpdater.quitAndInstall(false, true)
+  if (canRestart) {
+    autoUpdater.quitAndInstall(false, true)
+  } else {
+    console.log('[Updater] Restart requested but update not ready')
+  }
 })
 
 ipcMain.on('updater:confirm-update', () => {
