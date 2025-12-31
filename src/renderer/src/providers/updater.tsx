@@ -36,24 +36,31 @@ export const UpdaterProvider: React.FC<
             toast.info("No update available");
         });
 
+        let downloadToastId: string | number | null = null;
+
         const offDownloadProgress = window.updater.onDownloadProgress((progressObj) => {
-            console.log(`Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`);
-            // Optionally, you can show download progress in the UI
-            toast.promise(
-                new Promise<void>((resolve) => {
-                    if (progressObj.percent >= 100) {
-                        resolve();
-                    }
-                }), {
-                pending: `Downloading update: ${progressObj.percent.toFixed(2)}%`,
-                success: 'Download complete!',
-                error: 'Error downloading update'
-            },
-                {
-                    autoClose: false
-                }
-            )
+            const percent = progressObj.percent.toFixed(2);
+
+            console.log(
+                `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${percent}% (${progressObj.transferred}/${progressObj.total})`
+            );
+
+            // First event → create toast
+            if (!downloadToastId) {
+                downloadToastId = toast.info(
+                    `Downloading update: ${percent}%`,
+                    { autoClose: false }
+                );
+                return;
+            }
+
+            // Subsequent events → UPDATE same toast
+            toast.update(downloadToastId, {
+                render: `Downloading update: ${percent}%`,
+                autoClose: false,
+            });
         });
+
 
 
         const offError = window.updater.onUpdateError(() => {

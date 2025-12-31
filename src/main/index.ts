@@ -6,6 +6,7 @@ import { autoUpdater } from 'electron-updater'
 import { cpuUsage } from 'process'
 import "./pairing-ipc"
 import { getDeviceToken } from './device'
+
 /**
  * ================================
  * Auto Updater Configuration
@@ -19,6 +20,7 @@ autoUpdater.setFeedURL({
   token: process.env.GITHUB_TOKEN,
   releaseType: 'release'
 })
+
 // is development mode
 const apiURL = is.dev
   ? 'http://10.0.0.229:3008' // <-- your LAN IP
@@ -38,9 +40,6 @@ function broadcast(channel: string, ...args: any[]) {
     win.webContents.send(channel, ...args)
   })
 }
-
-
-
 
 /**
  * ================================
@@ -65,7 +64,6 @@ function createWindow(): void {
   })
 
   const deviceToken = getDeviceToken()
-
   const route = deviceToken ? "/" : "/settings/pair"
 
   let loadUrl: string
@@ -77,8 +75,6 @@ function createWindow(): void {
   }
 
   mainWindow.loadURL(loadUrl)
-
-
 
   mainWindow.on('ready-to-show', () => mainWindow?.show())
 
@@ -99,10 +95,7 @@ function createWindow(): void {
       console.error("Heartbeat failed", err)
     }
   }, 15_000)
-
-
 }
-
 
 /**
  * ================================
@@ -134,14 +127,13 @@ app.whenReady().then(() => {
  * ================================
  */
 
-// Update available
 let canRestart = false
+
 autoUpdater.on('update-available', () => {
   console.log('[Updater] Update available')
   broadcast('updater:update-available')
 })
 
-// No update available
 autoUpdater.on('update-not-available', () => {
   console.log('[Updater] No update available')
   broadcast('updater:update-not-available')
@@ -151,26 +143,26 @@ autoUpdater.on('error', (err) => {
   console.error('[Updater] Error:', err)
   broadcast('updater:update-error')
 })
-// Update downloaded
-autoUpdater.on('update-downloaded', () => {
-  console.log('[Updater] Update downloaded')
-  broadcast('updater:update-downloaded')
-})
 
 autoUpdater.on('download-progress', (progressObj) => {
-  console.log(`[Updater] Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`)
-  // send progress to renderer if needed
+  console.log(
+    `[Updater] Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`
+  )
   broadcast('updater:download-progress', progressObj)
 })
 
 autoUpdater.on('update-downloaded', () => {
   console.log('[Updater] Update downloaded and ready to install')
-  broadcast('updater:update-downloaded')
   canRestart = true
+  broadcast('updater:update-downloaded')
 })
-// ststem configuration fetch
+
+/**
+ * ================================
+ * System configuration fetch
+ * ================================
+ */
 ipcMain.handle('system:get-configuration', async () => {
-  // Here you can gather and return system configuration details
   return {
     platform: process.platform,
     arch: process.arch,
@@ -193,16 +185,19 @@ ipcMain.on('updater:check-for-updates', () => {
 
 // Restart & install
 ipcMain.on('updater:restart', () => {
-  if (canRestart) {
-    autoUpdater.quitAndInstall(false, true)
-  } else {
+  if (!canRestart) {
     console.log('[Updater] Restart requested but update not ready')
+    return
   }
+
+  console.log('[Updater] Quitting and installing update')
+  autoUpdater.quitAndInstall(false, true)
 })
 
+// Confirm update (DOWNLOAD ONLY)
 ipcMain.on('updater:confirm-update', () => {
+  console.log('[Updater] User confirmed update download')
   autoUpdater.downloadUpdate()
-  autoUpdater.quitAndInstall(false, true)
 })
 
 /**
