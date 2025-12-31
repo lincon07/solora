@@ -24,6 +24,7 @@ import {
 
 import { Routes, Route, useNavigate } from "react-router-dom";
 import PairSettings from "./pages/settings/pairing/pair";
+import TaskListsPage from "./pages/Lists/task-lists";
 
 /* ================= Lazy Pages ================= */
 
@@ -32,7 +33,7 @@ const Dashboard = React.lazy(() =>
 );
 
 const CalendarPage = React.lazy(() =>
-  import("./pages/calander/calander")
+  import("./pages/calander/CalendarPage")
 );
 
 const SettingsPage = React.lazy(() =>
@@ -144,6 +145,22 @@ export default function AppLayout() {
               </ListItemButton>
             </ListItem>
 
+             <ListItem disablePadding>
+              <ListItemButton
+                disableRipple
+                disableTouchRipple
+                sx={{ pl: 4, gap: 2 }}
+                onClick={() => nav("/task-lists")}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <Home fontSize="small" />
+                </ListItemIcon>
+                <Typography fontSize={13}>
+                  Tasks
+                </Typography>
+              </ListItemButton>
+            </ListItem>
+
             <ListItem disablePadding>
               <ListItemButton
                 disableRipple
@@ -218,6 +235,7 @@ export default function AppLayout() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/pair" element={<PairSettings />} />
+            <Route path="/task-lists" element={<TaskListsPage />} />
           </Routes>
         </React.Suspense>
       </Box>

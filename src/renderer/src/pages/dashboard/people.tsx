@@ -20,6 +20,10 @@ import {
   DialogContent,
   DialogActions,
   ButtonBase,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 
 import PersonIcon from "@mui/icons-material/Person";
@@ -40,14 +44,23 @@ import {
 } from "../../../api/todos";
 
 import { createHubMember } from "../../../api/members";
+import { fetchHubUsers } from "../../../api/users";
 import { AvatarPicker } from "./avatar-picker";
 
-/* =========================================================
-* Component
-* ========================================================= */
+/* ---------------- Types ---------------- */
+
+type HubUser = {
+  id: string;
+  email?: string;
+};
+
+/* ========================================================= */
 
 export default function People() {
   const hub = React.useContext(HubInfoContext);
+
+  const [hubUsers, setHubUsers] = React.useState<HubUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = React.useState<string>("");
 
   const [newTaskText, setNewTaskText] =
     React.useState<Record<string, string>>({});
@@ -60,7 +73,9 @@ export default function People() {
 
   const [addMemberOpen, setAddMemberOpen] = React.useState(false);
   const [displayName, setDisplayName] = React.useState("");
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>("https://api.dicebear.com/7.x/fun-emoji/svg?seed=fox");
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(
+    "https://api.dicebear.com/7.x/fun-emoji/svg?seed=fox"
+  );
   const [addingMember, setAddingMember] = React.useState(false);
 
   /* ---------------- Guards ---------------- */
@@ -68,6 +83,14 @@ export default function People() {
   if (!hub) return <Typography>Loading hub…</Typography>;
 
   const { hubId, members, loading, refreshMembers } = hub;
+
+  React.useEffect(() => {
+    if (!hubId) return;
+    fetchHubUsers(hubId).then((res) => {
+      setHubUsers(res.users);
+      setSelectedUserId(res.users[0]?.id ?? "");
+    });
+  }, [hubId]);
 
   if (loading) {
     return (
@@ -82,23 +105,25 @@ export default function People() {
   }
 
   /* =========================================================
-  * Member Creation
-  * ========================================================= */
+   * Member Creation
+   * ========================================================= */
 
   const handleCreateNewMember = async () => {
     const name = displayName.trim();
-    if (name.length < 2) return;
+    if (name.length < 2 || !selectedUserId) return;
 
     setAddingMember(true);
 
     try {
       await createHubMember(hubId, {
+        userId: selectedUserId, // ✅ STRICT LINK
         displayName: name,
         role: "member",
-        avatarUrl: avatarUrl,
+        avatarUrl,
       });
 
       setDisplayName("");
+      setAvatarUrl(null);
       setAddMemberOpen(false);
       refreshMembers();
     } catch (err) {
@@ -109,8 +134,8 @@ export default function People() {
   };
 
   /* =========================================================
-  * Todo handlers (unchanged)
-  * ========================================================= */
+   * Todo handlers
+   * ========================================================= */
 
   const handleAddTodo = async (member: HubMemberWithTodos) => {
     const text = newTaskText[member.id]?.trim();
@@ -130,13 +155,10 @@ export default function People() {
     try {
       await createTodo(hubId, member.id, text);
       refreshMembers();
-    } catch { }
+    } catch {}
   };
 
-  const handleToggleTodo = async (
-    _memberId: string,
-    todo: Todo
-  ) => {
+  const handleToggleTodo = async (_memberId: string, todo: Todo) => {
     if (savingTodoIds.has(todo.id)) return;
 
     setSavingTodoIds((s) => new Set(s).add(todo.id));
@@ -165,12 +187,12 @@ export default function People() {
     try {
       await deleteTodo(hubId, todo.id);
       refreshMembers();
-    } catch { }
+    } catch {}
   };
 
   /* =========================================================
-  * Render
-  * ========================================================= */
+   * Render
+   * ========================================================= */
 
   return (
     <>
@@ -231,28 +253,6 @@ export default function People() {
                   </ListItem>
                 ))}
               </List>
-
-              <Divider sx={{ my: 1 }} />
-
-              <Stack direction="row" spacing={1}>
-                <Input
-                  fullWidth
-                  placeholder="Add a task"
-                  value={newTaskText[member.id] ?? ""}
-                  onChange={(e) =>
-                    setNewTaskText((p) => ({
-                      ...p,
-                      [member.id]: e.target.value,
-                    }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddTodo(member);
-                  }}
-                />
-                <Button onClick={() => handleAddTodo(member)}>
-                  Add
-                </Button>
-              </Stack>
             </CardContent>
           </Card>
         ))}
@@ -262,50 +262,42 @@ export default function People() {
           <Card
             sx={{
               minWidth: 260,
-              height: '100%',
-              border: '3.5px dashed',
-              borderColor: 'grey.700',
+              border: "3px dashed",
+              borderColor: "grey.700",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Stack alignItems="center" spacing={1}>
-              <Avatar>
-                <Avatar />
-              </Avatar>
-              <Typography>Add Member</Typography>
-            </Stack>
+            <Typography>Add Member</Typography>
           </Card>
         </ButtonBase>
       </Box>
 
       {/* Add Member Dialog */}
-      <Dialog open={addMemberOpen} onClose={() => setAddMemberOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={addMemberOpen} onClose={() => setAddMemberOpen(false)}>
         <DialogTitle>Add Member</DialogTitle>
 
         <DialogContent>
           <Stack spacing={2} mt={1}>
-            {/* Avatar Preview */}
-            <Stack alignItems="center">
-              <Avatar
-                src={avatarUrl ?? undefined}
-                sx={{ width: 72, height: 72 }}
+            <AvatarPicker value={avatarUrl} onSelect={setAvatarUrl} />
+
+            <FormControl fullWidth>
+              <InputLabel>User</InputLabel>
+              <Select
+                value={selectedUserId}
+                label="User"
+                onChange={(e) => setSelectedUserId(e.target.value)}
               >
-                {!avatarUrl && <PersonIcon />}
-              </Avatar>
-            </Stack>
+                {hubUsers.map((u) => (
+                  <MenuItem key={u.id} value={u.id}>
+                    {u.email ?? u.email ?? u.id}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-            {/* Avatar Picker */}
-            <AvatarPicker
-              value={avatarUrl}
-              onSelect={setAvatarUrl}
-            />
-
-            {/* Display Name */}
             <Input
-              fullWidth
-              autoFocus
               placeholder="Display name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -314,15 +306,13 @@ export default function People() {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setAddMemberOpen(false)}>
-            Cancel
-          </Button>
+          <Button onClick={() => setAddMemberOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={addingMember || displayName.trim().length < 2}
+            disabled={!selectedUserId || displayName.trim().length < 2}
             onClick={handleCreateNewMember}
           >
-            {addingMember ? "Adding…" : "Add Member"}
+            Add Member
           </Button>
         </DialogActions>
       </Dialog>
@@ -331,19 +321,12 @@ export default function People() {
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
         <DialogTitle>Delete task?</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={confirmDeleteTodo}
-          >
+          <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteTodo}>
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-
     </>
   );
 }

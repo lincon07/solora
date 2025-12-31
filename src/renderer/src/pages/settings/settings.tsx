@@ -20,6 +20,8 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
 import DangerArea from "./danger-area/danger-area";
+import { inviteHubUser } from "../../../api/users";
+import { HubInfoContext } from "@renderer/providers/hub-info";
 
 /* ---------------- Types ---------------- */
 
@@ -145,6 +147,7 @@ function SettingsCard({
 /* ---------------- Page ---------------- */
 
 export default function SettingsPage() {
+  const info = React.useContext(HubInfoContext);
   const updater = React.useContext(UpdaterContext);
   const theme = React.useContext(MyThemeContext);
   const [cozyMode] = React.useState(true);
@@ -244,6 +247,17 @@ export default function SettingsPage() {
     systemConfig?.memory?.total != null
       ? (systemConfig.memory.total / 1024 / 1024 / 1024).toFixed(1)
       : null;
+
+
+      useEffect(() => {
+
+        inviteHubUser(info?.hubId || "", "lincp.dojrp@gmail.com").then((res) => {
+          console.log("Invite sent", res);
+        }).catch((err) => {
+          console.error("Failed to send invite", err);
+        });
+
+      }, [])
 
   return (
     <CozyContext.Provider value={{ cozy: cozyMode }}>
