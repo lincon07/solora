@@ -26,6 +26,10 @@ declare global {
       clearDeviceToken: () => Promise<void>
       clearCache: () => Promise<void>
       factoryResetLocal: () => Promise<void>
+    },
+    keyboard: {
+      show: () => Promise<void>
+      hide: () => Promise<void>
     }
   }
 }

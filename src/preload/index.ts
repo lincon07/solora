@@ -127,6 +127,10 @@ if (process.contextIsolated) {
     factoryResetLocal: () =>
       ipcRenderer.invoke("danger:factory-reset-local"),
   });
+  contextBridge.exposeInMainWorld("keyboard", {
+  show: () => ipcRenderer.invoke("keyboard:show"),
+  hide: () => ipcRenderer.invoke("keyboard:hide"),
+})
 } else {
   // Fallback for disabled context isolation (not recommended)
   // @ts-ignore
