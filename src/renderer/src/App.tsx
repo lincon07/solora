@@ -5,7 +5,7 @@ import { UpdaterProvider } from "./providers/updater"
 import { MyThemeProvider } from "./providers/theme/theme"
 import { HubInfoProvider } from "./providers/hub-info"
 import { useEffect } from "react"
-
+import "./assets/main.css"
 function App(): React.JSX.Element {
   // useEffect(() => {
   //   const handleFocusIn = (e: FocusEvent) => {
