@@ -22,6 +22,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
+import AddIcon from "@mui/icons-material/Add";
 
 import {
   ColumnDef,
@@ -32,8 +33,9 @@ import {
 
 import { useContext, useMemo, useState } from "react";
 import { HubInfoContext, HubInfoContextType } from "@renderer/providers/hub-info";
-import { deleteHubMember, updateHubMember } from "../../../api/members";
-import { AvatarPicker } from "../dashboard/avatar-picker";
+import { deleteHubMember, updateHubMember, createHubMember } from "../../../api/members";
+import { usePairing } from "@renderer/hooks/usePairing";
+import { PairQRCode } from "./pairing/DevicePairQRCode";
 
 /* ========================================================= */
 
@@ -59,6 +61,7 @@ function MembersTable() {
 
   const [editTarget, setEditTarget] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const hasOwner = members?.some((m) => m.role === "owner");
 
@@ -83,15 +86,10 @@ function MembersTable() {
       cell: (info) => (
         <Chip
           size="small"
-          label={info?.getValue() === "owner" ? "Owner" : "Member"}
+          label={info.getValue() === "owner" ? "Owner" : "Member"}
           color={info.getValue() === "owner" ? "primary" : "default"}
         />
       ),
-    },
-    {
-      id: "todos",
-      header: "Todos",
-      cell: ({ row }) => row.original.todos?.length ?? 0,
     },
     {
       id: "status",
@@ -130,6 +128,18 @@ function MembersTable() {
 
   return (
     <>
+      {/* ADD MEMBER BUTTON */}
+      <Stack direction="row" justifyContent="flex-end" mb={1}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setAddOpen(true)}
+        >
+          Add Member
+        </Button>
+      </Stack>
+
+      {/* TABLE */}
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           {table.getHeaderGroups().map((hg) => (
@@ -137,7 +147,11 @@ function MembersTable() {
               {hg.headers.map((h) => (
                 <th
                   key={h.id}
-                  style={{ padding: 8, textAlign: "left", borderBottom: "1px solid #ddd" }}
+                  style={{
+                    padding: 8,
+                    textAlign: "left",
+                    borderBottom: "1px solid #ddd",
+                  }}
                 >
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
@@ -145,6 +159,7 @@ function MembersTable() {
             </tr>
           ))}
         </thead>
+
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
@@ -158,6 +173,17 @@ function MembersTable() {
         </tbody>
       </table>
 
+      {/* ADD MEMBER DIALOG */}
+<AddMemberDialog
+  key={addOpen ? "open" : "closed"} // 🔥 forces remount
+  open={addOpen}
+  hubId={hubId!}
+  onClose={() => setAddOpen(false)}
+  onCreated={refreshMembers}
+/>
+
+
+      {/* EDIT MEMBER */}
       {editTarget && (
         <EditMemberDialog
           member={editTarget}
@@ -168,6 +194,7 @@ function MembersTable() {
         />
       )}
 
+      {/* DELETE MEMBER */}
       {deleteTarget && (
         <Dialog open onClose={() => setDeleteTarget(null)}>
           <DialogTitle>Remove member?</DialogTitle>
@@ -192,6 +219,103 @@ function MembersTable() {
 }
 
 /* ========================================================= */
+/* ADD MEMBER DIALOG */
+/* ========================================================= */
+
+function AddMemberDialog({
+  hubId,
+  open,
+  onClose,
+  onCreated,
+}: {
+  hubId: string;
+  open: boolean;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [displayName, setDisplayName] = useState("");
+  const [lockedUserId, setLockedUserId] = useState<string | null>(null);
+
+  const pairing = usePairing({
+    type: "member",
+    hubId,
+    onResolved: ({ userId }) => {
+      if (userId) setLockedUserId(userId);
+    },
+  });
+
+  async function handleCreate() {
+    if (!lockedUserId) return;
+
+    await createHubMember(hubId, {
+      userId: lockedUserId,
+      displayName,
+    });
+
+    onCreated();
+    onClose();
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Add Hub Member</DialogTitle>
+
+      <DialogContent>
+        <Stack spacing={2} mt={1}>
+          <Stack alignItems="center">
+            <Avatar sx={{ width: 64, height: 64 }}>
+              <PersonIcon />
+            </Avatar>
+          </Stack>
+
+          <TextField
+            label="Display Name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            fullWidth
+          />
+
+          {!pairing.pairing && (
+            <Button variant="outlined" onClick={pairing.start}>
+              Generate QR Code
+            </Button>
+          )}
+
+          {pairing.pairing && (
+            <>
+              <PairQRCode
+                qr={pairing.qr}
+                code={pairing.pairing.pairingCode}
+                pairingId={pairing.pairing.pairingId}
+              />
+
+              {lockedUserId && (
+                <Typography color="success.main" textAlign="center">
+                  User linked successfully ✔
+                </Typography>
+              )}
+            </>
+          )}
+        </Stack>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          disabled={!lockedUserId || !displayName}
+          onClick={handleCreate}
+        >
+          Create Member
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/* ========================================================= */
+/* EDIT MEMBER DIALOG (UNCHANGED LOGIC) */
+/* ========================================================= */
 
 function EditMemberDialog({
   member,
@@ -212,21 +336,12 @@ function EditMemberDialog({
 
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          {/* Avatar preview */}
           <Stack alignItems="center">
-            <Avatar
-              src={avatarUrl ?? undefined}
-              sx={{ width: 80, height: 80 }}
-            >
+            <Avatar src={avatarUrl ?? undefined} sx={{ width: 80, height: 80 }}>
               {!avatarUrl && <PersonIcon />}
             </Avatar>
           </Stack>
 
-          {/* Avatar picker (Suspense-enabled) */}
-          <AvatarPicker
-            value={avatarUrl}
-            onSelect={setAvatarUrl}
-          />
 
           <TextField
             label="Display Name"

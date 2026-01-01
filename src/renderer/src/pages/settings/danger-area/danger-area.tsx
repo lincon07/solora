@@ -9,6 +9,7 @@ import {
     Typography,
 } from "@mui/material";
 import { DangerConfirmDialog } from "../dialogs/danger-dialog";
+import { factoryResetHub } from "../../../../api/hub";
 
 
 
@@ -41,7 +42,7 @@ export default function DangerArea() {
     };
 
     const factoryReset = async () => {
-        await fetch("/hub/factory-reset", { method: "POST" });
+        await factoryResetHub()
         await window.danger.factoryResetLocal();
     };
 

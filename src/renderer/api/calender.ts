@@ -15,6 +15,7 @@ export type CalendarEvent = {
   title: string;
   startAt: string;
   endAt: string;
+  color: string | null;
 
   calendarId: string;
   calendarColor?: string;

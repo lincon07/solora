@@ -1,4 +1,9 @@
-export function hashColor(seed: string) {
+export function hashColor(seed?: string) {
+  // 🔒 HARD GUARD — prevents ALL crashes
+  if (!seed || typeof seed !== "string") {
+    return "#3b82f6"; // default blue
+  }
+
   let h = 0;
   for (let i = 0; i < seed.length; i++) {
     h = (h * 31 + seed.charCodeAt(i)) >>> 0;

@@ -5,8 +5,6 @@ import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
 import { cpuUsage } from 'process'
 import "./pairing-ipc"
-// main.ts
-import "./danger-ipc";
 import { getDeviceToken } from './device'
 
 /**

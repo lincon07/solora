@@ -8,6 +8,8 @@ import {
   TextField,
   Stack,
   Typography,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 
 type Props = {
@@ -15,25 +17,41 @@ type Props = {
   initialStart?: Date | null;
   initialEnd?: Date | null;
   onClose: () => void;
-  onCreate: (data: { title: string; startAt: Date; endAt: Date }) => Promise<void> | void;
+  onCreate: (data: {
+    id: string;
+    title: string;
+    startAt: Date;
+    endAt: Date;
+    color: string;
+  }) => Promise<void> | void;
 };
 
+/* ================= Color Options ================= */
+
+const EVENT_COLORS = [
+  "#3b82f6", // blue
+  "#22c55e", // green
+  "#a855f7", // purple
+  "#f97316", // orange
+  "#ef4444", // red
+  "#06b6d4", // cyan
+];
+
+/* ================= Helpers ================= */
+
 function toLocalInputValue(date: Date) {
-  // yyyy-MM-ddTHH:mm (local time)
   const pad = (n: number) => String(n).padStart(2, "0");
-  const yyyy = date.getFullYear();
-  const mm = pad(date.getMonth() + 1);
-  const dd = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const min = pad(date.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function parseLocalInputValue(value: string) {
-  // The browser interprets "YYYY-MM-DDTHH:mm" as local time
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
 }
+
+/* ================= Dialog ================= */
 
 export function CreateEventDialog({
   open,
@@ -45,44 +63,46 @@ export function CreateEventDialog({
   const [title, setTitle] = React.useState("");
   const [start, setStart] = React.useState<Date | null>(null);
   const [end, setEnd] = React.useState<Date | null>(null);
+  const [color, setColor] = React.useState<string>(EVENT_COLORS[0]);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setTitle("");
+      setStart(null);
+      setEnd(null);
+      setColor(EVENT_COLORS[0]);
+      setSaving(false);
+      return;
+    }
 
-    const now = new Date();
-    const defaultStart = initialStart ?? now;
-    const defaultEnd = initialEnd ?? new Date(defaultStart.getTime() + 60 * 60 * 1000);
-
+    const base = initialStart ?? new Date();
     setTitle("");
-    setStart(defaultStart);
-    setEnd(defaultEnd);
-    setSaving(false);
+    setStart(base);
+    setEnd(initialEnd ?? new Date(base.getTime() + 60 * 60 * 1000));
+    setColor(EVENT_COLORS[0]);
   }, [open, initialStart, initialEnd]);
-
-  const startStr = start ? toLocalInputValue(start) : "";
-  const endStr = end ? toLocalInputValue(end) : "";
 
   const error =
     !title.trim()
-      ? "Title is required"
+      ? "Title required"
       : !start || !end
-      ? "Start and end are required"
-      : end.getTime() <= start.getTime()
+      ? "Start and end required"
+      : end <= start
       ? "End must be after start"
       : null;
 
-  const canSubmit = !saving && !error;
-
   const submit = async () => {
-    if (!canSubmit || !start || !end) return;
+    if (error || !start || !end) return;
 
     setSaving(true);
     try {
       await onCreate({
+        id: crypto.randomUUID(),
         title: title.trim(),
         startAt: start,
         endAt: end,
+        color,
       });
       onClose();
     } finally {
@@ -91,7 +111,12 @@ export function CreateEventDialog({
   };
 
   return (
-    <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={saving ? undefined : onClose}
+      fullWidth
+      maxWidth="sm"
+    >
       <DialogTitle>Create Event</DialogTitle>
 
       <DialogContent>
@@ -99,7 +124,6 @@ export function CreateEventDialog({
           <TextField
             autoFocus
             label="Title"
-            placeholder="e.g. Dinner, Pickup, Appointment"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={saving}
@@ -109,8 +133,10 @@ export function CreateEventDialog({
           <TextField
             label="Start"
             type="datetime-local"
-            value={startStr}
-            onChange={(e) => setStart(parseLocalInputValue(e.target.value))}
+            value={start ? toLocalInputValue(start) : ""}
+            onChange={(e) =>
+              setStart(parseLocalInputValue(e.target.value))
+            }
             disabled={saving}
             InputLabelProps={{ shrink: true }}
           />
@@ -118,14 +144,48 @@ export function CreateEventDialog({
           <TextField
             label="End"
             type="datetime-local"
-            value={endStr}
-            onChange={(e) => setEnd(parseLocalInputValue(e.target.value))}
+            value={end ? toLocalInputValue(end) : ""}
+            onChange={(e) =>
+              setEnd(parseLocalInputValue(e.target.value))
+            }
             disabled={saving}
             InputLabelProps={{ shrink: true }}
           />
 
+          {/* ================= COLOR PICKER ================= */}
+          <Stack spacing={0.5}>
+            <Typography fontSize={13} fontWeight={600}>
+              Color
+            </Typography>
+
+            <ToggleButtonGroup
+              exclusive
+              value={color}
+              onChange={(_, v) => v && setColor(v)}
+              size="small"
+            >
+              {EVENT_COLORS.map((c) => (
+                <ToggleButton
+                  key={c}
+                  value={c}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    p: 0,
+                    borderRadius: 1,
+                    backgroundColor: c,
+                    border: "2px solid transparent",
+                    "&.Mui-selected": {
+                      borderColor: "#000",
+                    },
+                  }}
+                />
+              ))}
+            </ToggleButtonGroup>
+          </Stack>
+
           {error && (
-            <Typography variant="body2" color="error">
+            <Typography color="error" fontSize={13}>
               {error}
             </Typography>
           )}
@@ -136,7 +196,11 @@ export function CreateEventDialog({
         <Button onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={submit} disabled={!canSubmit}>
+        <Button
+          variant="contained"
+          onClick={submit}
+          disabled={!!error || saving}
+        >
           {saving ? "Creating…" : "Create"}
         </Button>
       </DialogActions>

@@ -1,14 +1,15 @@
-import { CalendarEvent } from "@api/calender";
-import { hashColor } from "./hash-color";
+// src/utils/calendarMappers.ts
 
-export function mapEvents(rows: CalendarEvent[]) {
-  return rows.map((e) => ({
+export function mapEvents(events: any[]) {
+  return events.map((e) => ({
     id: e.id,
     title: e.title,
-    start: e.startAt,
-    end: e.endAt,
-    backgroundColor: e.calendarColor ?? hashColor(e.calendarId),
-    borderColor: "transparent",
+    start: new Date(e.startAt),
+    end: new Date(e.endAt),
+
+    backgroundColor: e.color ?? e.calendarColor ?? "#3b82f6",
+    borderColor: e.color ?? e.calendarColor ?? "#3b82f6",
+
     extendedProps: {
       memberDisplayName: e.memberDisplayName,
       memberAvatarUrl: e.memberAvatarUrl,

@@ -1,355 +1,238 @@
+import * as React from "react"
 import {
-    Box,
-    CircularProgress,
-    Stack,
-    Typography,
-    IconButton,
-    Avatar,
-} from "@mui/material";
+  Box,
+  CircularProgress,
+  Stack,
+  Typography,
+  IconButton,
+  Avatar,
+  useTheme,
+} from "@mui/material"
 
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit"
+import DeleteIcon from "@mui/icons-material/Delete"
 
-import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react"
+import timeGridPlugin from "@fullcalendar/timegrid"
+import dayGridPlugin from "@fullcalendar/daygrid"
+import interactionPlugin from "@fullcalendar/interaction"
 
 type Props = {
-    loading: boolean;
-    events: any[];
-    onSelect: (arg: any) => void;
-    onUpdate: (arg: any) => void;
-    onEdit: (event: any) => void;
-    onDelete: (event: any) => void;
-};
+  loading: boolean
+  events: any[]
+  onSelect: (arg: any) => void
+  onUpdate: (update: { id: string; start: Date; end: Date }) => void
+  onEdit: (event: any) => void
+  onDelete: (event: any) => void
+}
 
 export function CalendarShell({
-    loading,
-    events,
-    onSelect,
-    onUpdate,
-    onEdit,
-    onDelete,
+  loading,
+  events,
+  onSelect,
+  onUpdate,
+  onEdit,
+  onDelete,
 }: Props) {
-    return (
-        <Box
-            sx={{
-                height: "100%",
-                background: "transparent",
+  const theme = useTheme()
+  const isDark = theme.palette.mode === "dark"
 
-                /* =====================================================
-                 * REMOVE FULLCALENDAR "TODAY" BACKGROUND (YELLOW)
-                 * ===================================================== */
-                "& .fc-day-today": {
-                    background: "transparent !important",
-                },
+  const hourLine = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(0,0,0,0.08)"
 
-                "& .fc-timegrid-col.fc-day-today": {
-                    background: "transparent !important",
-                },
+  const dayLine = isDark
+    ? "rgba(255,255,255,0.14)"
+    : "rgba(0,0,0,0.14)"
 
-                "& .fc-highlight": {
-                    background: "rgba(0,0,0,0.04)",
-                },
+  return (
+    <Box
+      sx={{
+        height: "100%",
 
-                /* =====================================================
-                 * GLOBAL BORDER REMOVAL
-                 * ===================================================== */
-                "& .fc, & .fc *": {
-                    border: "none",
-                },
+        /* =====================================
+         * SLOT HEIGHT (CONTROLS HOUR SPACING)
+         * ===================================== */
 
-                "& .fc-scrollgrid": {
-                    border: "none",
-                },
-
-                /* =====================================================
-                 * DAY HEADER
-                 * ===================================================== */
-                "& .fc-col-header": {
-                    marginBottom: 6,
-                },
-
-                "& .fc-col-header-cell": {
-                    paddingBottom: 2,
-                },
-
-                "& .fc-col-header-cell-cushion": {
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                    color: "rgba(0,0,0,0.65)",
-                },
-
-                /* =====================================================
-                 * TIME AXIS
-                 * ===================================================== */
-                "& .fc-timegrid-axis": {
-                    width: 54,
-                },
-
-              
-                /* =====================================================
-                 * HORIZONTAL GUIDE LINES
-                 * ===================================================== */
-                "& .fc-timegrid-slot": {
-                    position: "relative",
-                },
-
-                 "& .fc-timegrid-axis-cushion": {
-          fontSize: "0.75rem",
-          color: "rgba(0,0,0,0.45)",
-          transform: "translateY(42px)", // ⬅️ KEY FIX
+        /* =====================================
+         * REMOVE ALL DEFAULT BORDERS
+         * ===================================== */
+        "& .fc, & .fc-scrollgrid": {
+          border: "none",
+        },
+        "& .fc-theme-standard td, & .fc-theme-standard th": {
+          border: "none",
         },
 
-                "& .fc-timegrid-slot::after": {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: "1px",
-                    background:
-                        "linear-gradient(to right, rgba(0,0,0,0.06), rgba(0,0,0,0.02), rgba(0,0,0,0.06))",
-                    pointerEvents: "none",
-                    zIndex: 0,
-                },
+        /* =====================================
+         * REMOVE ALL SLOT LINES
+         * ===================================== */
+        "& .fc-timegrid-slot-lane": {
+          borderBottom: "none",
+        },
 
-                "& .fc-timegrid-slot-minor::after": {
-                    display: "none",
-                },
+        /* =====================================
+         * HOUR LINES ONLY
+         * ===================================== */
+        "& .fc-timegrid-slot-lane[data-time$=':00:00']": {
+          borderBottom: `1px solid ${hourLine}`,
+          zIndex: 1,
+        },
 
-                /* =====================================================
-                 * VERTICAL GUIDE LINES (RIGHT SIDE ONLY)
-                 * ===================================================== */
-                "& .fc-timegrid-col": {
-                    position: "relative",
-                },
+        /* =====================================
+         * EVENTS ABOVE GRID
+         * ===================================== */
+        "& .fc-timegrid-event-harness": {
+          zIndex: 5,
+        },
 
-                "& .fc-timegrid-col:not(:last-child)::after": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    right: 0,
-                    width: "1px",
-                    background:
-                        "linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0.02), rgba(0,0,0,0.06))",
-                    pointerEvents: "none",
-                    zIndex: 0,
-                },
+        /* =====================================
+         * VERTICAL DAY COLUMN LINES
+         * ===================================== */
+        "& .fc-timegrid-col": {
+          borderRight: `1px solid ${dayLine}`,
+        },
+        "& .fc-timegrid-col:last-of-type": {
+          borderRight: "none",
+        },
 
-                /* =====================================================
-                 * NOW INDICATOR
-                 * ===================================================== */
-                "& .fc-timegrid-now-indicator-line": {
-                    borderColor: "#3b82f6",
-                    borderWidth: 2,
-                },
+        /* =====================================
+         * DAY HEADER (Sun / Mon / Tue)
+         * ===================================== */
+        "& .fc-col-header-cell": {
+          borderRight: `1px solid ${dayLine}`,
+        },
+        "& .fc-col-header-cell:last-of-type": {
+          borderRight: "none",
+        },
+        "& .fc-col-header-cell-cushion": {
+          padding: "8px 0",
+          fontSize: 13,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          color: theme.palette.text.secondary,
+        },
 
-                "& .fc-timegrid-now-indicator-arrow": {
-                    display: "none",
-                },
+        /* =====================================
+         * REMOVE TIME AXIS
+         * ===================================== */
+        "& .fc-timegrid-axis": {
+          width: 0,
+        },
+        "& .fc-timegrid-axis-frame": {
+          display: "none",
+        },
 
-                /* =====================================================
-                 * TOOLBAR
-                 * ===================================================== */
-                "& .fc-toolbar": {
-                    marginBottom: 8,
-                },
+        /* =====================================
+         * HEADER TOOLBAR CLEANUP
+         * ===================================== */
+        "& .fc-toolbar": {
+          marginBottom: theme.spacing(1),
+        },
+      }}
+    >
+      {loading ? (
+        <Stack alignItems="center" py={6}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+        <FullCalendar
+          plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          editable
+          selectable
+          nowIndicator
+          allDaySlot={false}
 
-                "& .fc-toolbar-title": {
-                    fontSize: "1.05rem",
-                    fontWeight: 600,
-                },
+          slotDuration="00:30:00"
+          snapDuration="00:15:00"
 
-                "& .fc-button": {
-                    background: "transparent",
-                    border: "none",
-                    color: "rgba(0,0,0,0.6)",
-                },
+          events={events}
+          select={onSelect}
 
-                "& .fc-button:hover": {
-                    background: "rgba(0,0,0,0.05)",
-                },
+          eventResize={(arg) =>
+            onUpdate({
+              id: arg.event.id,
+              start: arg.event.start!,
+              end: arg.event.end!,
+            })
+          }
 
-                /* =====================================================
-                 * EVENT CARDS
-                 * ===================================================== */
-                "& .fc-event": {
-                    borderRadius: 1,
-                    border: "none",
-                    padding: "8px 10px",
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.10)",
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    position: "relative",
-                    zIndex: 2,
-                },
+          eventDrop={(arg) =>
+            onUpdate({
+              id: arg.event.id,
+              start: arg.event.start!,
+              end: arg.event.end!,
+            })
+          }
 
-                "& .event-actions": {
-                    opacity: 0,
-                    transition: "opacity 120ms ease",
-                },
+          headerToolbar={{
+            left: "prev",
+            center: "title",
+            right: "next",
+          }}
 
-                "& .fc-event:hover .event-actions": {
-                    opacity: 1,
-                },
-            }}
-        >
-            {loading ? (
-                <Stack alignItems="center" py={6}>
-                    <CircularProgress />
+          eventContent={(arg) => {
+            const event = arg.event
+            const displayName = event.extendedProps?.memberDisplayName
+            const avatarUrl = event.extendedProps?.memberAvatarUrl
+
+            return (
+              <Stack spacing={0.5}>
+                <Stack direction="row" justifyContent="space-between">
+                  <Stack spacing={0.25}>
+                    <Typography fontSize={13} fontWeight={700}>
+                      {event.title}
+                    </Typography>
+                    <Typography fontSize={11} color="text.secondary">
+                      {arg.timeText}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit(event)
+                      }}
+                    >
+                      <EditIcon fontSize="inherit" />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(event)
+                      }}
+                    >
+                      <DeleteIcon fontSize="inherit" />
+                    </IconButton>
+                  </Stack>
                 </Stack>
-            ) : (
-                <FullCalendar
-                    plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
-                    initialView="timeGridWeek"
 
-                    /* ================= CORE ================= */
-                    editable
-                    selectable
-                    nowIndicator
-                    allDaySlot={false}
-
-                    /* ================= DRAG / RESIZE ================= */
-                    eventStartEditable
-                    eventDurationEditable
-                    slotDuration="00:30:00"
-                    snapDuration="00:15:00"
-
-                    /* ================= DATA ================= */
-                    events={events}
-
-                    /* ================= HANDLERS ================= */
-                    select={onSelect}
-                    eventDrop={onUpdate}
-                    eventResize={onUpdate}
-                    eventClick={() => { }}
-
-                    /* ================= HEADER ================= */
-                    headerToolbar={{
-                        left: "prev",
-                        center: "title",
-                        right: "next",
-                    }}
-
-                    /* ================= CUSTOM DAY HEADER ================= */
-                    dayHeaderContent={(arg) => {
-                        const date = arg.date;
-                        const weekday = date.toLocaleDateString(undefined, {
-                            weekday: "short",
-                        });
-                        const monthDay = date.toLocaleDateString(undefined, {
-                            month: "numeric",
-                            day: "numeric",
-                        });
-
-                        const today = new Date();
-                        const isToday =
-                            date.getFullYear() === today.getFullYear() &&
-                            date.getMonth() === today.getMonth() &&
-                            date.getDate() === today.getDate();
-
-                        return (
-                            <Stack
-                                alignItems="center"
-                                spacing={0}
-                                sx={{
-                                    borderRadius: 6,
-                                    px: 1,
-                                    py: 0.5,
-                                    backgroundColor: isToday
-                                        ? "rgba(59,130,246,0.12)"
-                                        : "transparent",
-                                }}
-                            >
-                                <Typography fontSize={12} fontWeight={600}>
-                                    {weekday}
-                                </Typography>
-                                <Typography fontSize={11} sx={{ opacity: 0.6 }}>
-                                    {monthDay}
-                                </Typography>
-                            </Stack>
-                        );
-                    }}
-
-                    /* ================= EVENT UI ================= */
-                    eventContent={(arg) => {
-                        const event = arg.event;
-                        const avatarUrl = event.extendedProps?.memberAvatarUrl;
-                        const displayName = event.extendedProps?.memberDisplayName;
-
-                        return (
-                            <Stack spacing={0.5}>
-                                {/* ---------- title + actions ---------- */}
-                                <Stack
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="flex-start"
-                                >
-                                    <Stack spacing={0.5} maxWidth="calc(100% - 40px)">
-                                        <Typography
-                                            fontSize={13}
-                                            fontWeight={700}
-                                            sx={{ lineHeight: 1.15 }}
-                                        >
-                                            {event.title}
-                                        </Typography>
-
-                                        {/* time */}
-
-                                        <Typography fontSize={11} sx={{ opacity: 0.8 }}>
-                                            {arg.timeText}
-                                        </Typography>
-                                    </Stack>
-                                    <Stack direction="row" spacing={0} className="event-actions">
-                                        <IconButton
-                                            size="small"
-                                            sx={{ color: "rgba(255,255,255,0.9)" }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onEdit(event);
-                                            }}
-                                        >
-                                            <EditIcon fontSize="inherit" />
-                                        </IconButton>
-
-                                        <IconButton
-                                            size="small"
-                                            sx={{ color: "rgba(255,255,255,0.9)" }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDelete(event);
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="inherit" />
-                                        </IconButton>
-                                    </Stack>
-                                </Stack>
-
-                                {/* ---------- member row ---------- */}
-                                {displayName && (
-                                    <Stack direction="row" spacing={0.75} alignItems="center">
-                                        <Avatar
-                                            src={avatarUrl ?? ""}
-                                            sx={{
-                                                width: 18,
-                                                height: 18,
-                                                fontSize: 10,
-                                                bgcolor: "rgba(255,255,255,0.25)",
-                                            }}
-                                        >
-                                            {displayName[0]?.toUpperCase()}
-                                        </Avatar>
-                                    </Stack>
-                                )}
-                            </Stack>
-                        );
-                    }}
-
-                />
-            )}
-        </Box>
-    );
+                {displayName && (
+                  <Stack direction="row" spacing={0.75}>
+                    <Avatar
+                      src={avatarUrl}
+                      sx={{
+                        width: 18,
+                        height: 18,
+                        fontSize: 10,
+                        bgcolor: theme.palette.primary.main,
+                      }}
+                    >
+                      {displayName[0]}
+                    </Avatar>
+                  </Stack>
+                )}
+              </Stack>
+            )
+          }}
+        />
+      )}
+    </Box>
+  )
 }

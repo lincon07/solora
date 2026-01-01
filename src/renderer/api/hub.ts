@@ -52,3 +52,17 @@ export async function fetchMyDevices() {
 
   return res.json();
 }
+
+
+export async function factoryResetHub() {
+  const res = await fetch(`${API_BASE}/hub/factory-reset`, {
+    method: "POST",
+    headers: hubAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to factory reset hub");
+  }
+
+  return res.json();
+}
