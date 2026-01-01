@@ -20,6 +20,7 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
 import DangerArea from "./danger-area/danger-area";
+import PairSettings from "./pairing/pair";
 
 /* ---------------- Types ---------------- */
 
@@ -336,6 +337,8 @@ export default function SettingsPage() {
             </Card>
 
             <MembersManagement />
+
+            <PairSettings />
 
             <DangerArea />
             {/* ================= System Info ================= */}
