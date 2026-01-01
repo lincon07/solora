@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Card, Stack, Typography, Chip } from "@mui/material";
+import {  Card, Stack, Typography, Chip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 import { HubInfoContext } from "@renderer/providers/hub-info";
@@ -20,7 +20,7 @@ export default function CalendarPage() {
   const hub = React.useContext(HubInfoContext);
   const hubId = hub?.hubId;
 
-  const [calendars, setCalendars] = React.useState<HubCalendar[]>([]);
+  const [_calendars, setCalendars] = React.useState<HubCalendar[]>([]);
   const [activeCalendarId, setActiveCalendarId] = React.useState<string | null>(null);
   const [events, setEvents] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);

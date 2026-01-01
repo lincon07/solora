@@ -20,7 +20,6 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
 import DangerArea from "./danger-area/danger-area";
-import { HubInfoContext } from "@renderer/providers/hub-info";
 
 /* ---------------- Types ---------------- */
 
@@ -146,7 +145,6 @@ function SettingsCard({
 /* ---------------- Page ---------------- */
 
 export default function SettingsPage() {
-  const info = React.useContext(HubInfoContext);
   const updater = React.useContext(UpdaterContext);
   const theme = React.useContext(MyThemeContext);
   const [cozyMode] = React.useState(true);

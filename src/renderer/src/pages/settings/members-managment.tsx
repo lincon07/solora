@@ -326,7 +326,7 @@ function EditMemberDialog({
 }: any) {
   const [name, setName] = useState(member.displayName);
   const [role, setRole] = useState(member.role);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(member.avatarUrl);
+  const [avatarUrl, _setAvatarUrl] = useState<string | null>(member.avatarUrl);
 
   const isCurrentOwner = member.role === "owner";
 
