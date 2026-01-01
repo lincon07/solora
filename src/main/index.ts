@@ -82,19 +82,6 @@ function createWindow(): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
-
-  setInterval(async () => {
-    try {
-      await fetch(`${apiURL}/hub/heartbeat`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${deviceToken}`,
-        },
-      })
-    } catch (err) {
-      console.error("Heartbeat failed", err)
-    }
-  }, 15_000)
 }
 
 /**
