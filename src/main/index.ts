@@ -37,6 +37,10 @@ autoUpdater.allowDowngrade = true
 app.commandLine.appendSwitch("enable-features", "UseOzonePlatform")
 app.commandLine.appendSwitch("ozone-platform", "wayland")
 
+app.commandLine.appendSwitch("disable-frame-rate-limit", "false")
+app.commandLine.appendSwitch("disable-gpu-vsync")
+
+
 // THIS IS THE IMPORTANT ONE
 app.commandLine.appendSwitch("enable-wayland-ime")
 
