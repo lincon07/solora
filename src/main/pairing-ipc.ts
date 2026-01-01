@@ -1,57 +1,61 @@
+// src/main/pairing-ipc.ts
 import { ipcMain, app } from "electron"
 import { setDeviceToken } from "./device"
 import os from "os"
 import { exec } from "child_process"
 
-function isWayland() {
-  return process.env.XDG_SESSION_TYPE === "wayland"
+function run(cmd: string) {
+  exec(`bash -lc "${cmd.replace(/"/g, '\\"')}"`)
 }
 
-function showSystemKeyboard() {
-  exec(`
-    gdbus call --session \
-      --dest sm.puri.OSK0 \
-      --object-path /sm/puri/OSK0 \
-      --method sm.puri.OSK0.SetVisible true
-  `)
+/* =======================
+   KEYBOARD CONTROL
+   ======================= */
+
+function showKeyboard() {
+  const platform = os.platform()
+
+  if (platform === "win32") {
+    run("osk")
+    return
+  }
+
+  if (platform === "linux") {
+    // Prefer Wayland keyboard first
+    run("wvkbd-mobintl || wvkbd || matchbox-keyboard")
+    return
+  }
 }
 
-function hideSystemKeyboard() {
-  exec(`
-    gdbus call --session \
-      --dest sm.puri.OSK0 \
-      --object-path /sm/puri/OSK0 \
-      --method sm.puri.OSK0.SetVisible false
-  `)
+function hideKeyboard() {
+  const platform = os.platform()
+
+  if (platform === "win32") {
+    run("taskkill /IM osk.exe /F")
+    return
+  }
+
+  if (platform === "linux") {
+    run("pkill -f wvkbd || pkill -f matchbox-keyboard")
+    return
+  }
 }
 
-function showFallbackKeyboard() {
-  exec("matchbox-keyboard || wvkbd")
-}
-
-function hideFallbackKeyboard() {
-  exec("pkill matchbox-keyboard || pkill wvkbd")
-}
-
-/* ---------------- keyboard IPC ---------------- */
+/* =======================
+   IPC HANDLERS
+   ======================= */
 
 ipcMain.handle("keyboard:show", () => {
-  if (os.platform() === "linux" && isWayland()) {
-    showSystemKeyboard()
-  } else {
-    showFallbackKeyboard()
-  }
+  showKeyboard()
 })
 
 ipcMain.handle("keyboard:hide", () => {
-  if (os.platform() === "linux" && isWayland()) {
-    hideSystemKeyboard()
-  } else {
-    hideFallbackKeyboard()
-  }
+  hideKeyboard()
 })
 
-/* ---------------- pairing ---------------- */
+/* =======================
+   PAIRING (DO NOT TOUCH)
+   ======================= */
 
 ipcMain.handle("pairing:complete", async (_event, deviceToken: string) => {
   if (!deviceToken) {
@@ -59,6 +63,8 @@ ipcMain.handle("pairing:complete", async (_event, deviceToken: string) => {
   }
 
   setDeviceToken(deviceToken)
+
+  // Relaunch into authenticated mode
   app.relaunch()
   app.exit(0)
 })

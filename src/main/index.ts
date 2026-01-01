@@ -32,6 +32,14 @@ autoUpdater.allowDowngrade = true
 // autoUpdater.autoDownload = true
 // autoUpdater.autoInstallOnAppQuit = true
 
+
+// MUST be before app.whenReady()
+app.commandLine.appendSwitch("enable-features", "UseOzonePlatform")
+app.commandLine.appendSwitch("ozone-platform", "wayland")
+
+// THIS IS THE IMPORTANT ONE
+app.commandLine.appendSwitch("enable-wayland-ime")
+
 /**
  * Helper to safely broadcast events to all windows
  */
