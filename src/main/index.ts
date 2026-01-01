@@ -37,6 +37,11 @@ autoUpdater.allowDowngrade = true
 app.commandLine.appendSwitch("enable-features", "UseOzonePlatform")
 app.commandLine.appendSwitch("ozone-platform", "wayland")
 
+// Prevent viewport resize when OSK appears/disappears
+app.commandLine.appendSwitch("enable-features", "VirtualKeyboard")
+app.commandLine.appendSwitch("disable-features", "CalculateNativeWinOcclusion")
+
+
 app.commandLine.appendSwitch("disable-frame-rate-limit", "false")
 app.commandLine.appendSwitch("disable-gpu-vsync")
 
@@ -66,6 +71,7 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: true,
+    movable: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
