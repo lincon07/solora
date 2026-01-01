@@ -3,38 +3,53 @@ import { setDeviceToken } from "./device"
 import os from "os"
 import { exec } from "child_process"
 
-let keyboardProcess: any = null
-
-function showKeyboard() {
-  if (keyboardProcess) return
-
-  const platform = os.platform()
-
-  if (platform === "win32") {
-    keyboardProcess = exec("osk")
-    return
-  }
-
-  if (platform === "linux") {
-    // Prefer matchbox-keyboard, fallback to wvkbd
-    keyboardProcess = exec("matchbox-keyboard || wvkbd")
-    return
-  }
+function isWayland() {
+  return process.env.XDG_SESSION_TYPE === "wayland"
 }
 
-function hideKeyboard() {
-  const platform = os.platform()
-
-  if (platform === "win32") {
-    exec("taskkill /IM osk.exe /F")
-  }
-
-  if (platform === "linux") {
-    exec("pkill matchbox-keyboard || pkill wvkbd")
-  }
-
-  keyboardProcess = null
+function showSystemKeyboard() {
+  exec(`
+    gdbus call --session \
+      --dest sm.puri.OSK0 \
+      --object-path /sm/puri/OSK0 \
+      --method sm.puri.OSK0.SetVisible true
+  `)
 }
+
+function hideSystemKeyboard() {
+  exec(`
+    gdbus call --session \
+      --dest sm.puri.OSK0 \
+      --object-path /sm/puri/OSK0 \
+      --method sm.puri.OSK0.SetVisible false
+  `)
+}
+
+function showFallbackKeyboard() {
+  exec("matchbox-keyboard || wvkbd")
+}
+
+function hideFallbackKeyboard() {
+  exec("pkill matchbox-keyboard || pkill wvkbd")
+}
+
+/* ---------------- keyboard IPC ---------------- */
+
+ipcMain.handle("keyboard:show", () => {
+  if (os.platform() === "linux" && isWayland()) {
+    showSystemKeyboard()
+  } else {
+    showFallbackKeyboard()
+  }
+})
+
+ipcMain.handle("keyboard:hide", () => {
+  if (os.platform() === "linux" && isWayland()) {
+    hideSystemKeyboard()
+  } else {
+    hideFallbackKeyboard()
+  }
+})
 
 /* ---------------- pairing ---------------- */
 
@@ -46,14 +61,4 @@ ipcMain.handle("pairing:complete", async (_event, deviceToken: string) => {
   setDeviceToken(deviceToken)
   app.relaunch()
   app.exit(0)
-})
-
-/* ---------------- keyboard ---------------- */
-
-ipcMain.handle("keyboard:show", () => {
-  showKeyboard()
-})
-
-ipcMain.handle("keyboard:hide", () => {
-  hideKeyboard()
 })
