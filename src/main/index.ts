@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
-import { cpuUsage } from 'process'
+import { cpuUsage, mainModule } from 'process'
 import "./pairing-ipc"
 import { getDeviceToken } from './device'
 
@@ -82,7 +82,11 @@ function createWindow(): void {
 
   mainWindow.loadURL(loadUrl)
 
-  mainWindow.on('ready-to-show', () => mainWindow?.show())
+  mainWindow.on('ready-to-show', () => {
+    mainWindow?.show()
+    mainWindow?.focus()
+    mainWindow?.maximize()
+  })
 
   mainWindow.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url)
