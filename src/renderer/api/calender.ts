@@ -68,16 +68,31 @@ export function fetchCalendarEvents(hubId: string, calendarId: string) {
 export function createCalendarEvent(
   hubId: string,
   calendarId: string,
-  data: { title: string; startAt: Date | string; endAt: Date | string }
+  data: {
+    title: string
+    startAt: Date | string
+    endAt: Date | string
+  }
 ) {
   return api<{ event: CalendarEvent }>(
     `/hub/${hubId}/calendars/${calendarId}/events`,
     {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        title: data.title,
+        startAt:
+          data.startAt instanceof Date
+            ? data.startAt.toISOString()
+            : data.startAt,
+        endAt:
+          data.endAt instanceof Date
+            ? data.endAt.toISOString()
+            : data.endAt,
+      }),
     }
-  );
+  )
 }
+
 
 export function updateCalendarEvent(
   hubId: string,

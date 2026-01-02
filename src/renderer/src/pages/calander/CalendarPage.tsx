@@ -122,7 +122,7 @@ export default function CalendarPage() {
         />
       </Stack>
 
-      <Card sx={{ flexGrow: 1 }}>
+      <Card sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <CalendarShell
           loading={loading}
           events={events}
