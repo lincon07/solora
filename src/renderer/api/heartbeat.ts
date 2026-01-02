@@ -1,4 +1,3 @@
-// src/renderer/api/heartbeat.ts
 import { api } from "./client"
 
 export interface HeartbeatResponse {
@@ -6,8 +5,12 @@ export interface HeartbeatResponse {
   time?: string
 }
 
-export function fetchHeartBeat() {
-  return api<HeartbeatResponse>("/hub/heartbeat", {
+export function fetchHeartBeat(hubId: string) {
+  if (!hubId) {
+    throw new Error("hubId is required for heartbeat")
+  }
+
+  return api<HeartbeatResponse>(`/hub/${hubId}/heartbeat`, {
     method: "POST",
   })
 }

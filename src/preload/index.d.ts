@@ -21,6 +21,8 @@ declare global {
     }
     system: {
       getSystemConfiguration: () => Promise<any>
+      setScreenBrightness: (level: number) => Promise<void>
+      getScreenBrightness: () => Promise<number>
     },
     danger: {
       clearDeviceToken: () => Promise<void>

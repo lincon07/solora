@@ -35,18 +35,26 @@ export const HubInfoProvider: React.FC<
 
   /* ---------------- Load Hub ---------------- */
 
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const me = await fetchHubMe();
-        if (!me?.hub?.id) return;
+React.useEffect(() => {
+  const token = localStorage.getItem("hubToken")
 
-        setHubId(me.hub.id);
-      } catch (err) {
-        console.error("Failed to fetch hub:", err);
-      }
-    })();
-  }, []);
+  if (!token) {
+    console.warn("No hub token yet — skipping fetchHubMe")
+    setLoading(false)
+    return
+  }
+
+  ;(async () => {
+    try {
+      const me = await fetchHubMe()
+      if (!me?.hub?.id) return
+
+      setHubId(me.hub.id)
+    } catch (err) {
+      console.error("Failed to fetch hub:", err)
+    }
+  })()
+}, [])
 
   /* ---------------- Load Members + Todos ---------------- */
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Card,
@@ -14,17 +14,19 @@ import {
   Stack,
   Chip,
   Button,
+  Slider,
 } from "@mui/material";
-import { UpdaterContext } from "@renderer/providers/updater";
+
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import { UpdaterContext } from "@renderer/providers/updater";
 import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
 import DangerArea from "./danger-area/danger-area";
 import PairSettings from "./pairing/pair";
 
-/* ---------------- Types ---------------- */
+/* ================= TYPES ================= */
 
-type ControlType = "switch" | "checkbox" | "select" | "text";
+type ControlType = "switch" | "checkbox" | "select" | "text" | "slider";
 
 type SystemConfig = {
   platform?: string;
@@ -33,11 +35,11 @@ type SystemConfig = {
   version?: string;
 };
 
-/* ---------------- Cozy Context ---------------- */
+/* ================= COZY CONTEXT ================= */
 
 const CozyContext = React.createContext({ cozy: true });
 
-/* ---------------- Reusable Row ---------------- */
+/* ================= SETTING ROW ================= */
 
 function SettingRow({
   title,
@@ -79,7 +81,7 @@ function SettingRow({
   );
 }
 
-/* ---------------- Settings Card ---------------- */
+/* ================= SETTINGS CARD ================= */
 
 function SettingsCard({
   title,
@@ -91,8 +93,13 @@ function SettingsCard({
     label: string;
     description?: string;
     type: ControlType;
+    value?: any;
     defaultValue?: any;
-    options?: { label: string; value: string }[];
+    min?: number;
+    max?: number;
+    step?: number;
+    onChange?: (value: any) => void;
+    options?: { label: string; value: string; action?: () => void }[];
   }>;
 }) {
   return (
@@ -107,30 +114,57 @@ function SettingsCard({
               control={(() => {
                 switch (s.type) {
                   case "switch":
-                    return <Switch defaultChecked={s.defaultValue} />;
+                    return (
+                      <Switch
+                        defaultChecked={s.defaultValue}
+                        onChange={(_, v) => s.onChange?.(v)}
+                      />
+                    );
+
                   case "checkbox":
-                    return <Checkbox defaultChecked={s.defaultValue} />;
+                    return (
+                      <Checkbox
+                        defaultChecked={s.defaultValue}
+                        onChange={(_, v) => s.onChange?.(v)}
+                      />
+                    );
+
                   case "text":
                     return (
                       <TextField
                         size="small"
-                        placeholder="Enter value"
                         defaultValue={s.defaultValue}
+                        onBlur={(e) => s.onChange?.(e.target.value)}
                       />
                     );
+
                   case "select":
                     return (
                       <Select size="small" defaultValue={s.defaultValue}>
-                        {s.options?.map((o: { label: string; value: string; action?: () => void }) => (
-                          <MenuItem key={o.value} value={o.value} onClick={() => {
-                            if (o?.action) {
-                              o?.action();
-                            }
-                          }}>
+                        {s.options?.map((o) => (
+                          <MenuItem
+                            key={o.value}
+                            value={o.value}
+                            onClick={() => o.action?.()}
+                          >
                             {o.label}
                           </MenuItem>
                         ))}
                       </Select>
+                    );
+
+                  case "slider":
+                    return (
+                      <Box sx={{ width: 220 }}>
+                        <Slider
+                          value={s.value}
+                          min={s.min ?? 0}
+                          max={s.max ?? 100}
+                          step={s.step ?? 1}
+                          valueLabelDisplay="auto"
+                          onChange={(_, v) => s.onChange?.(v)}
+                        />
+                      </Box>
                     );
                 }
               })()}
@@ -143,95 +177,50 @@ function SettingsCard({
   );
 }
 
-/* ---------------- Page ---------------- */
+/* ================= PAGE ================= */
 
 export default function SettingsPage() {
   const updater = React.useContext(UpdaterContext);
   const theme = React.useContext(MyThemeContext);
-  const [cozyMode] = React.useState(true);
-  const [systemConfig, setSystemConfig] = React.useState<SystemConfig | null>(
-    null
-  );
 
-  /* ---------------- Settings Data ---------------- */
+  const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
+  const [screenBrightness, setScreenBrightness] = useState<number>(70);
+  const brightnessTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const systemSettings = [
-    {
-      key: "sounds",
-      label: "UI Sound Effects",
-      description: "Play sound effects for interactions.",
-      type: "switch",
-      defaultValue: true,
-    },
-    {
-      key: "updates",
-      label: "Automatic Updates",
-      description: "Download and install updates automatically.",
-      type: "switch",
-      defaultValue: true,
-    },
-  ];
+  /* -------- Load brightness once -------- */
+  useEffect(() => {
+    const loadBrightness = async () => {
+      try {
+        const value = await window.system?.getScreenBrightness?.();
+        if (typeof value === "number") {
+          setScreenBrightness(value);
+        }
+      } catch (err) {
+        console.error("Failed to load screen brightness", err);
+      }
+    };
 
-  const preferenceSettings = [
-    {
-      key: "notifications",
-      label: "Enable Notifications",
-      type: "switch",
-      defaultValue: true,
-    },
-    {
-      key: "confirm",
-      label: "Confirm Destructive Actions",
-      type: "switch",
-      defaultValue: true,
-    },
-  ];
+    loadBrightness();
+  }, []);
 
-  const appearanceSettings = [
-        {
-      key: "theme",
-      label: "Theme",
-      description: "Select the application theme.",
-      type: "select",
-      defaultValue: theme?.mode || "system",
-      options: [
-        { label: "Light", value: "light", action: () => { theme?.setThemeMode('light') } },
-        { label: "Dark", value: "dark", action: () => { theme?.setThemeMode('dark') } },
-        { label: "System", value: "system", action: () => { theme?.setThemeMode('system') } },
-      ],
-    },
-    {
-      key: "design",
-      label: "Design",
-      description: "Select the application design.",
-      type: "select",
-      defaultValue: theme?.design || "uko",
-      options: [
-        { label: "Uko", value: "uko", action: () => { theme?.setDesignMode('uko') } },
-        { label: "Flat", value: "flat", action: () => { theme?.setDesignMode('flat') } },
+  /* -------- Debounced brightness update -------- */
+  const setBrightness = (value: number) => {
+    setScreenBrightness(value);
 
-      ],
-    },
-    {
-      key: "density",
-      label: "Density",
-      description: "Select the application density.",
-      type: "select",
-      defaultValue: theme?.density || "cozy",
-      options: [
-        { label: "Cozy", value: "cozy", action: () => { theme?.setDensityMode('cozy') } },
-        { label: "Compact", value: "compact", action: () => { theme?.setDensityMode('compact') } },
-
-      ],
+    if (brightnessTimeout.current) {
+      clearTimeout(brightnessTimeout.current);
     }
-  ];
 
-  /* ---------------- System Info Fetch ---------------- */
+    brightnessTimeout.current = setTimeout(() => {
+      window.system?.setScreenBrightness?.(value);
+    }, 80);
+  };
 
+  /* -------- Load system config -------- */
   useEffect(() => {
     const loadSystemConfig = async () => {
       try {
-        const config = await (window as any)?.system?.getSystemConfiguration?.();
+        const config = await window.system?.getSystemConfiguration?.();
         setSystemConfig(config ?? null);
       } catch (err) {
         console.error("Failed to load system configuration", err);
@@ -246,135 +235,119 @@ export default function SettingsPage() {
       ? (systemConfig.memory.total / 1024 / 1024 / 1024).toFixed(1)
       : null;
 
+  /* ================= SETTINGS DATA ================= */
+
+  const systemSettings = [
+    {
+      key: "sounds",
+      label: "UI Sound Effects",
+      description: "Play sound effects for interactions.",
+      type: "switch" as const,
+      defaultValue: true,
+    },
+    {
+      key: "updates",
+      label: "Automatic Updates",
+      description: "Download and install updates automatically.",
+      type: "switch" as const,
+      defaultValue: true,
+    },
+    {
+      key: "brightness",
+      label: "Screen Brightness",
+      description: "Adjust the physical screen brightness.",
+      type: "slider" as const,
+      value: screenBrightness,
+      min: 0,
+      max: 100,
+      step: 1,
+      onChange: setBrightness,
+    },
+  ];
+
+  const appearanceSettings = [
+    {
+      key: "theme",
+      label: "Theme",
+      description: "Select the application theme.",
+      type: "select" as const,
+      defaultValue: theme?.mode || "system",
+      options: [
+        { label: "Light", value: "light", action: () => theme?.setThemeMode("light") },
+        { label: "Dark", value: "dark", action: () => theme?.setThemeMode("dark") },
+        { label: "System", value: "system", action: () => theme?.setThemeMode("system") },
+      ],
+    },
+    {
+      key: "density",
+      label: "Density",
+      description: "Select UI density.",
+      type: "select" as const,
+      defaultValue: theme?.density || "cozy",
+      options: [
+        { label: "Cozy", value: "cozy", action: () => theme?.setDensityMode("cozy") },
+        { label: "Compact", value: "compact", action: () => theme?.setDensityMode("compact") },
+      ],
+    },
+  ];
+
   return (
-    <CozyContext.Provider value={{ cozy: cozyMode }}>
-      <Box sx={{ p: 3, width: "100%", overflowX: "hidden" }}>
-        {/* ================= HEADER ================= */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
-            alignItems: "center",
-            mb: 4,
-          }}
-        >
-          {/* Left */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Box>
-              <Typography variant="h4" fontWeight={700}>
-                Settings
-              </Typography>
-              <Typography color="text.secondary">
-                Manage system preferences and appearance
-              </Typography>
-            </Box>
-          </Stack>
+    <CozyContext.Provider value={{ cozy: true }}>
+      <Box sx={{ p: 3 }}>
+        {/* HEADER */}
+        <Stack direction="row" justifyContent="space-between" mb={4}>
+          <Box>
+            <Typography variant="h4" fontWeight={700}>
+              Settings
+            </Typography>
+            <Typography color="text.secondary">
+              Manage system preferences and appearance
+            </Typography>
+          </Box>
 
-          {/* Center (empty by design) */}
-          <Box />
+          <Chip
+            icon={<SystemUpdateAltIcon />}
+            label="Check for Updates"
+            color="primary"
+            onClick={() => updater?.checkForUpdates?.()}
+          />
+        </Stack>
 
-          {/* Right */}
-          <Stack spacing={1} alignItems="flex-end">
-            <Chip
-              icon={<SystemUpdateAltIcon />}
-              label="Check for Updates"
-              color="primary"
-              onClick={() => updater?.checkForUpdates?.()}
-            />
-          </Stack>
-        </Box>
+        <Stack spacing={4} alignItems="center">
+          <SettingsCard title="System Configuration" settings={systemSettings} />
+          <SettingsCard title="Appearance" settings={appearanceSettings} />
 
-        {/* ================= CONTENT ================= */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+          <MembersManagement />
+          <PairSettings />
+          <DangerArea />
+
+          {/* SYSTEM INFO */}
           <Box
             sx={{
               width: "100%",
-              maxWidth: 1200,
+              maxWidth: 900,
+              pt: 3,
+              borderTop: "1px solid",
+              borderColor: "divider",
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
+              gap: 3,
+              flexWrap: "wrap",
             }}
           >
-            <SettingsCard
-              title="System Configuration"
-              settings={systemSettings as any}
-            />
-            <SettingsCard
-              title="User Preferences"
-              settings={preferenceSettings as any}
-            />
-            <SettingsCard title="Appearance" settings={appearanceSettings as any} />
-
-            <Card sx={{ width: "100%", maxWidth: 900 }}>
-              <CardHeader title="Theme Playground" />
-              <CardContent>
-                <Typography color="text.secondary">
-                  Experiment with custom themes and see changes in real-time.
-                </Typography>
-                <Button variant="outlined" sx={{ mt: 2 }} onClick={() => theme?.handleOpenPlayground(true)}>
-                  Open Theme Playground
-                </Button>
-                {/* Advanced settings can be added here */}
-              </CardContent>
-            </Card>
-
-            <Card sx={{ width: "100%", maxWidth: 900 }}>
-              <CardHeader title="Paired Devices" />
-              <CardContent>
-                <Typography color="text.secondary">
-                  Scan the QR code on your device to add another device to acesss your Soloras Hub.
-                </Typography>
-
-                { }
-                {/* Advanced settings can be added here */}
-              </CardContent>
-            </Card>
-
-            <MembersManagement />
-
-            <PairSettings />
-
-            <DangerArea />
-            {/* ================= System Info ================= */}
-            <Box
-              sx={{
-                width: "100%",
-                mt: 6,
-                pt: 3,
-                borderTop: "1px solid",
-                borderColor: "divider",
-                display: "flex",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 2,
-              }}
-            >
-              <Typography color="text.secondary">
-                OS: <strong>{systemConfig?.platform ?? "Loading…"}</strong>
-              </Typography>
-              <Typography color="text.secondary">
-                Architecture:{" "}
-                <strong>{systemConfig?.arch ?? "Loading…"}</strong>
-              </Typography>
-              <Typography color="text.secondary">
-                Memory:{" "}
-                <strong>
-                  {memoryGB ? `${memoryGB} GB` : "Loading…"}
-                </strong>
-              </Typography>
-              <Typography color="text.secondary">
-                Version:{" "}
-                <strong>{systemConfig?.version ?? "Loading…"}</strong>
-              </Typography>
-            </Box>
+            <Typography color="text.secondary">
+              OS: <strong>{systemConfig?.platform ?? "Loading…"}</strong>
+            </Typography>
+            <Typography color="text.secondary">
+              Arch: <strong>{systemConfig?.arch ?? "Loading…"}</strong>
+            </Typography>
+            <Typography color="text.secondary">
+              Memory: <strong>{memoryGB ? `${memoryGB} GB` : "Loading…"}</strong>
+            </Typography>
+            <Typography color="text.secondary">
+              Version: <strong>{systemConfig?.version ?? "Loading…"}</strong>
+            </Typography>
           </Box>
-        </Box>
+        </Stack>
       </Box>
     </CozyContext.Provider>
   );

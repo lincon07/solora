@@ -92,7 +92,11 @@ const updater = {
 
 
 const system = {
-  getSystemConfiguration: () => ipcRenderer.invoke('system:get-configuration')
+  getSystemConfiguration: () => ipcRenderer.invoke('system:get-configuration'),
+  getScreenBrightness: () => ipcRenderer.invoke('get-brightness'),
+  setScreenBrightness: (level: number) => ipcRenderer.invoke('set-brightness', level)
+  
+
 }
 
 const soloras = {

@@ -6,6 +6,7 @@ import { autoUpdater } from 'electron-updater'
 import { cpuUsage, mainModule } from 'process'
 import "./pairing-ipc"
 import { getDeviceToken } from './device'
+import { exec } from 'child_process'
 
 /**
  * ================================
@@ -34,20 +35,30 @@ autoUpdater.allowDowngrade = true
 
 
 // MUST be before app.whenReady()
-app.commandLine.appendSwitch("enable-features", "UseOzonePlatform")
-app.commandLine.appendSwitch("ozone-platform", "wayland")
+// app.commandLine.appendSwitch("enable-features", "UseOzonePlatform")
+// app.commandLine.appendSwitch("ozone-platform", "wayland")
 
-// Prevent viewport resize when OSK appears/disappears
-app.commandLine.appendSwitch("enable-features", "VirtualKeyboard")
-app.commandLine.appendSwitch("disable-features", "CalculateNativeWinOcclusion")
-
-
-app.commandLine.appendSwitch("disable-frame-rate-limit", "false")
-app.commandLine.appendSwitch("disable-gpu-vsync")
+// // Prevent viewport resize when OSK appears/disappears
+// app.commandLine.appendSwitch("enable-features", "VirtualKeyboard")
+// app.commandLine.appendSwitch("disable-features", "CalculateNativeWinOcclusion")
 
 
-// THIS IS THE IMPORTANT ONE
-app.commandLine.appendSwitch("enable-wayland-ime")
+// app.commandLine.appendSwitch("disable-frame-rate-limit", "false")
+// app.commandLine.appendSwitch("disable-gpu-vsync")
+
+
+// // THIS IS THE IMPORTANT ONE
+// app.commandLine.appendSwitch("enable-wayland-ime")
+
+
+// app.commandLine.appendSwitch("enable-gpu-rasterization")
+// app.commandLine.appendSwitch("enable-zero-copy")
+// app.commandLine.appendSwitch("enable-native-gpu-memory-buffers")
+// app.commandLine.appendSwitch("ignore-gpu-blacklist")
+// app.commandLine.appendSwitch("enable-features", "CanvasOopRasterization")
+// app.commandLine.appendSwitch("disable-software-rasterizer")
+// app.commandLine.appendSwitch("disable-smooth-scrolling")
+
 
 /**
  * Helper to safely broadcast events to all windows
@@ -165,6 +176,8 @@ autoUpdater.on('update-downloaded', () => {
   broadcast('updater:update-downloaded')
 })
 
+
+
 /**
  * ================================
  * System configuration fetch
@@ -179,6 +192,37 @@ ipcMain.handle('system:get-configuration', async () => {
     version: app.getVersion()
   }
 })
+
+
+ipcMain.handle("set-brightness", async (_, value: number) => {
+  const v = Math.max(0, Math.min(100, value))
+  return new Promise((resolve, reject) => {
+    exec(`ddcutil setvcp 10 ${v}`, (err) => {
+      if (err) reject(err)
+      else resolve(true)
+    })
+  })
+})
+
+ipcMain.handle("get-brightness", async () => {
+  return new Promise<number>((resolve, reject) => {
+    exec(`ddcutil getvcp 10`, (err, stdout) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      const match = stdout.match(/current value = (\d+), max value = (\d+)/)
+      if (match) {
+        const current = parseInt(match[1], 10)
+        resolve(current)
+      } else {
+        reject(new Error("Failed to parse brightness"))
+      }
+    })
+  })
+})
+
+
 
 /**
  * ================================

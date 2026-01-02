@@ -36,6 +36,7 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
   const hubInfo = useContext(HubInfoContext)
+  const hubId = hubInfo?.hubId
 
   const [isConnected, setIsConnected] = useState<boolean | null>(null)
   const [checking, setChecking] = useState(false)
@@ -65,10 +66,13 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
   /* ========================================================= */
 
   const checkApi = async () => {
+    if (!hubId) return
+
     try {
       setChecking(true)
+      startFailSafe()
 
-      const res = await fetchHeartBeat()
+      const res = await fetchHeartBeat(hubId)
 
       if (res.ok) {
         clearFailSafe()
@@ -87,18 +91,19 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
   /* INIT + POLLING */
   /* ========================================================= */
 
-  useEffect(() => {
-    setIsConnected(null)
-    startFailSafe()
-    checkApi()
 
-    const interval = setInterval(checkApi, 15_000)
+useEffect(() => {
+  if (!hubId) {
+    console.warn("Heartbeat paused — no hubId yet")
+    return
+  }
 
-    return () => {
-      clearInterval(interval)
-      clearFailSafe()
-    }
-  }, [hubInfo?.hubId])
+  setIsConnected(null)
+  checkApi()
+
+  const interval = setInterval(checkApi, 15_000)
+  return () => clearInterval(interval)
+}, [hubId])
 
   /* ========================================================= */
   /* LOADING */
