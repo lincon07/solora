@@ -71,6 +71,7 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: true,
+    kiosk: true,
     frame: false,
     movable: false,
     ...(process.platform === 'linux' ? { icon } : {}),
