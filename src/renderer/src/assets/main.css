@@ -12,3 +12,14 @@ body,
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+
+/* Hide scrollbars everywhere */
+* {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari */
+}

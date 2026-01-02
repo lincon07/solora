@@ -1,3 +1,4 @@
+import * as React from "react"
 import {
   Box,
   CircularProgress,
@@ -5,9 +6,14 @@ import {
   Typography,
   IconButton,
   Avatar,
+  ToggleButton,
+  ToggleButtonGroup,
   useTheme,
 } from "@mui/material"
 
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
+import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import TodayIcon from "@mui/icons-material/Today"
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 
@@ -34,6 +40,8 @@ export function CalendarShell({
   onDelete,
 }: Props) {
   const theme = useTheme()
+  const calendarRef = React.useRef<FullCalendar | null>(null)
+
   const isDark = theme.palette.mode === "dark"
 
   const hourLine = isDark
@@ -44,194 +52,211 @@ export function CalendarShell({
     ? "rgba(255,255,255,0.14)"
     : "rgba(0,0,0,0.14)"
 
+  const api = () => calendarRef.current?.getApi()
+
   return (
-    <Box
-      sx={{
-        height: "100%",
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* =========================
+       * CUSTOM HEADER (MUI)
+       * ========================= */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={1}
+      >
+        {/* LEFT CONTROLS */}
+        <Stack direction="row" spacing={0.5}>
+          <IconButton onClick={() => api()?.prev()}>
+            <ChevronLeftIcon />
+          </IconButton>
 
-        /* =====================================
-         * SLOT HEIGHT (CONTROLS HOUR SPACING)
-         * ===================================== */
+          <IconButton onClick={() => api()?.today()}>
+            <TodayIcon />
+          </IconButton>
 
-        /* =====================================
-         * REMOVE ALL DEFAULT BORDERS
-         * ===================================== */
-        "& .fc, & .fc-scrollgrid": {
-          border: "none",
-        },
-        "& .fc-theme-standard td, & .fc-theme-standard th": {
-          border: "none",
-        },
-
-        /* =====================================
-         * REMOVE ALL SLOT LINES
-         * ===================================== */
-        "& .fc-timegrid-slot-lane": {
-          borderBottom: "none",
-        },
-
-        /* =====================================
-         * HOUR LINES ONLY
-         * ===================================== */
-        "& .fc-timegrid-slot-lane[data-time$=':00:00']": {
-          borderBottom: `1px solid ${hourLine}`,
-          zIndex: 1,
-        },
-
-        /* =====================================
-         * EVENTS ABOVE GRID
-         * ===================================== */
-        "& .fc-timegrid-event-harness": {
-          zIndex: 5,
-        },
-
-        /* =====================================
-         * VERTICAL DAY COLUMN LINES
-         * ===================================== */
-        "& .fc-timegrid-col": {
-          borderRight: `1px solid ${dayLine}`,
-        },
-        "& .fc-timegrid-col:last-of-type": {
-          borderRight: "none",
-        },
-
-        /* =====================================
-         * DAY HEADER (Sun / Mon / Tue)
-         * ===================================== */
-        "& .fc-col-header-cell": {
-          borderRight: `1px solid ${dayLine}`,
-        },
-        "& .fc-col-header-cell:last-of-type": {
-          borderRight: "none",
-        },
-        "& .fc-col-header-cell-cushion": {
-          padding: "8px 0",
-          fontSize: 13,
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-          color: theme.palette.text.secondary,
-        },
-
-        /* =====================================
-         * REMOVE TIME AXIS
-         * ===================================== */
-        "& .fc-timegrid-axis": {
-          width: 0,
-        },
-        "& .fc-timegrid-axis-frame": {
-          display: "none",
-        },
-
-        /* =====================================
-         * HEADER TOOLBAR CLEANUP
-         * ===================================== */
-        "& .fc-toolbar": {
-          marginBottom: theme.spacing(1),
-        },
-      }}
-    >
-      {loading ? (
-        <Stack alignItems="center" py={6}>
-          <CircularProgress />
+          <IconButton onClick={() => api()?.next()}>
+            <ChevronRightIcon />
+          </IconButton>
         </Stack>
-      ) : (
-        <FullCalendar
-          plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          editable
-          selectable
-          nowIndicator
-          allDaySlot={false}
 
-          slotDuration="00:30:00"
-          snapDuration="00:15:00"
+        {/* TITLE */}
+        <Typography fontWeight={700} fontSize={16}>
+          {api()?.view?.title}
+        </Typography>
 
-          events={events}
-          select={onSelect}
+        {/* VIEW CONTROLS */}
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={api()?.view?.type}
+          onChange={(_, view) => view && api()?.changeView(view)}
+        >
+          <ToggleButton value="timeGridWeek">Week</ToggleButton>
+          <ToggleButton value="timeGridDay">Day</ToggleButton>
+          <ToggleButton value="dayGridMonth">Month</ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
 
-          eventResize={(arg) =>
-            onUpdate({
-              id: arg.event.id,
-              start: arg.event.start!,
-              end: arg.event.end!,
-            })
-          }
+      {/* =========================
+       * CALENDAR
+       * ========================= */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflow: "auto",
 
-          eventDrop={(arg) =>
-            onUpdate({
-              id: arg.event.id,
-              start: arg.event.start!,
-              end: arg.event.end!,
-            })
-          }
+          "& .fc, & .fc-scrollgrid": { border: "none" },
+          "& .fc-theme-standard td, & .fc-theme-standard th": { border: "none" },
 
-          headerToolbar={{
-            left: "prev",
-            center: "title",
-            right: "next",
-          }}
+          "& .fc-timegrid-axis": { width: 0 },
+          "& .fc-timegrid-axis-frame": { display: "none" },
+          "& .fc-timegrid-divider": { display: "none" },
 
-          eventContent={(arg) => {
-            const event = arg.event
-            const displayName = event.extendedProps?.memberDisplayName
-            const avatarUrl = event.extendedProps?.memberAvatarUrl
+          "& .fc-timegrid-slot-lane": { borderBottom: "none" },
+          "& .fc-timegrid-slot-lane[data-time$=':00:00']": {
+            borderBottom: `1px solid ${hourLine}`,
+          },
 
-            return (
-              <Stack spacing={0.5}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Stack spacing={0.25}>
-                    <Typography fontSize={13} fontWeight={700}>
-                      {event.title}
-                    </Typography>
-                    <Typography fontSize={11} color="text.secondary">
-                      {arg.timeText}
-                    </Typography>
-                  </Stack>
+          "& .fc-timegrid-col:not(:first-of-type)": {
+            boxShadow: `inset -1px 0 0 ${dayLine}`,
+          },
+          "& .fc-timegrid-col:last-of-type": {
+            boxShadow: "none",
+          },
 
-                  <Stack direction="row">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onEdit(event)
-                      }}
-                    >
-                      <EditIcon fontSize="inherit" />
-                    </IconButton>
+          "& .fc-col-header-cell:not(:first-of-type)": {
+            boxShadow: `inset -1px 0 0 ${dayLine}`,
+          },
+          "& .fc-col-header-cell:last-of-type": {
+            boxShadow: "none",
+          },
+          "& .fc-col-header-cell-cushion": {
+            padding: "8px 0",
+            fontSize: 13,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            color: theme.palette.text.secondary,
+          },
 
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDelete(event)
-                      }}
-                    >
-                      <DeleteIcon fontSize="inherit" />
-                    </IconButton>
+          "& .fc-day-today": {
+            backgroundColor: "transparent !important",
+          },
+
+          "& .fc-timegrid-slot": {
+            height: "2.5rem",
+          },
+
+          "& .fc-timegrid-event-harness": {
+            zIndex: 5,
+          },
+
+          /* ================================
+ * MONTH VIEW GRID LINES (dayGrid)
+ * ================================ */
+
+          /* vertical day lines */
+          "& .fc-daygrid-day": {
+            boxShadow: `inset -1px 0 0 ${dayLine}`,
+          },
+          "& .fc-daygrid-day:last-of-type": {
+            boxShadow: "none",
+          },
+
+          /* horizontal week lines */
+          "& .fc-daygrid-week": {
+            boxShadow: `inset 0 -1px 0 ${dayLine}`,
+          },
+          "& .fc-daygrid-week:last-of-type": {
+            boxShadow: "none",
+          },
+
+          /* header day names */
+          "& .fc-daygrid-header th:not(:last-of-type)": {
+            boxShadow: `inset -1px 0 0 ${dayLine}`,
+          },
+          "& .fc-daygrid-header th": {
+            border: "none",
+          },
+
+        }}
+      >
+        {loading ? (
+          <Stack alignItems="center" py={6}>
+            <CircularProgress />
+          </Stack>
+        ) : (
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            headerToolbar={false} // 🔥 disable FC header
+            editable
+            selectable
+            nowIndicator
+            allDaySlot={false}
+            height="100%"
+            slotDuration="00:30:00"
+            snapDuration="00:15:00"
+            events={events}
+            select={onSelect}
+            eventResize={(arg) =>
+              onUpdate({
+                id: arg.event.id,
+                start: arg.event.start!,
+                end: arg.event.end!,
+              })
+            }
+            eventDrop={(arg) =>
+              onUpdate({
+                id: arg.event.id,
+                start: arg.event.start!,
+                end: arg.event.end!,
+              })
+            }
+            eventContent={(arg) => {
+              const event = arg.event
+              return (
+                <Stack spacing={0.5}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Stack spacing={0.25}>
+                      <Typography fontSize={13} fontWeight={700}>
+                        {event.title}
+                      </Typography>
+                      <Typography fontSize={11} color="text.secondary">
+                        {arg.timeText}
+                      </Typography>
+                    </Stack>
+
+                    <Stack direction="row">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEdit(event)
+                        }}
+                      >
+                        <EditIcon fontSize="inherit" />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDelete(event)
+                        }}
+                      >
+                        <DeleteIcon fontSize="inherit" />
+                      </IconButton>
+                    </Stack>
                   </Stack>
                 </Stack>
-
-                {displayName && (
-                  <Stack direction="row" spacing={0.75}>
-                    <Avatar
-                      src={avatarUrl}
-                      sx={{
-                        width: 18,
-                        height: 18,
-                        fontSize: 10,
-                        bgcolor: theme.palette.primary.main,
-                      }}
-                    >
-                      {displayName[0]}
-                    </Avatar>
-                  </Stack>
-                )}
-              </Stack>
-            )
-          }}
-        />
-      )}
+              )
+            }}
+          />
+        )}
+      </Box>
     </Box>
   )
 }
