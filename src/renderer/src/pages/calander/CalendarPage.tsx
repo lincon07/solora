@@ -10,11 +10,13 @@ import {
   updateCalendarEvent,
   deleteCalendarEvent,
   HubCalendar,
+  createCalendar,
 } from "../../../api/calender";
 
 import { CalendarShell } from "./CalendarShell";
 import { CreateEventDialog } from "./dialogs/CreateEventDialog";
 import { mapEvents } from "@renderer/utils/calendarMappers";
+import { CreateCalendarDialog } from "./dialogs/CreateCalendarDialog";
 
 export default function CalendarPage() {
   const hub = React.useContext(HubInfoContext);
@@ -28,6 +30,7 @@ export default function CalendarPage() {
   const [createEventOpen, setCreateEventOpen] = React.useState(false);
   const [eventSeed, setEventSeed] = React.useState<{ start?: Date; end?: Date }>({});
   const [editingEvent, setEditingEvent] = React.useState<any | null>(null);
+const [createCalendarOpen, setCreateCalendarOpen] = React.useState(false)
 
   /* ---------- load calendars ---------- */
   React.useEffect(() => {
@@ -103,24 +106,34 @@ export default function CalendarPage() {
 
   return (
     <>
-      <Stack direction="row" justifyContent="space-between" mb={2}>
-        <Typography variant="h4" fontWeight={700}>
-          Calendar
-        </Typography>
+  <Stack direction="row" justifyContent="space-between" mb={2}>
+  <Typography variant="h4" fontWeight={700}>
+    Calendar
+  </Typography>
 
-        <Chip
-          icon={<AddIcon />}
-          label="Add Event"
-          color="primary"
-          onClick={() => {
-            const start = new Date();
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-            setEventSeed({ start, end });
-            setEditingEvent(null);
-            setCreateEventOpen(true);
-          }}
-        />
-      </Stack>
+  <Stack direction="row" spacing={1}>
+    <Chip
+      icon={<AddIcon />}
+      label="New Calendar"
+      variant="outlined"
+      onClick={() => setCreateCalendarOpen(true)}
+    />
+
+    <Chip
+      icon={<AddIcon />}
+      label="Add Event"
+      color="primary"
+      onClick={() => {
+        const start = new Date()
+        const end = new Date(start.getTime() + 60 * 60 * 1000)
+        setEventSeed({ start, end })
+        setEditingEvent(null)
+        setCreateEventOpen(true)
+      }}
+    />
+  </Stack>
+</Stack>
+
 
       <Card sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <CalendarShell
@@ -155,6 +168,21 @@ export default function CalendarPage() {
         }}
         onCreate={handleSaveEvent}
       />
+
+    <CreateCalendarDialog
+  open={createCalendarOpen}
+  onClose={() => setCreateCalendarOpen(false)}
+  onCreate={async (data) => {
+    if (!hubId) return
+
+    const res = await createCalendar(hubId, data)
+
+    setCalendars((prev) => [...prev, res.calendar])
+    setActiveCalendarId(res.calendar.id)
+    setCreateCalendarOpen(false)
+  }}
+/>
+
     </>
   );
 }
