@@ -60,6 +60,7 @@ export function usePairing(options: UsePairingOptions) {
       if (cancelled.current) return;
 
       const res = await fetchPairingStatus(pairing?.pairingId as string);
+      console.log("Polled pairing status:", res);
       if (res.status === "paired" || res.status === "claimed") {
         onResolved?.(res as any);
         return;
