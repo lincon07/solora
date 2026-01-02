@@ -74,6 +74,7 @@ export function createCalendarEvent(
     endAt: Date | string
   }
 ) {
+  console.log("Creating calendar event with data:", data);
   return api<{ event: CalendarEvent }>(
     `/hub/${hubId}/calendars/${calendarId}/events`,
     {
