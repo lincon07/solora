@@ -70,11 +70,9 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    show: true,
-    fullscreen: true,
+    show: false,
     alwaysOnTop: false,
     frame: false,
-    movable: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -97,8 +95,8 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
-    // mainWindow?.focus()
-    // mainWindow?.maximize()
+    mainWindow?.focus()
+    mainWindow?.maximize()
   })
 
   mainWindow.webContents.setWindowOpenHandler(details => {
