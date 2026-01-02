@@ -71,7 +71,8 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: true,
-    kiosk: true,
+    fullscreen: true,
+    alwaysOnTop: false,
     frame: false,
     movable: false,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -96,8 +97,8 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
-    // mainWindow?.focus()
-    // mainWindow?.maximize()
+    mainWindow?.focus()
+    mainWindow?.maximize()
   })
 
   mainWindow.webContents.setWindowOpenHandler(details => {
