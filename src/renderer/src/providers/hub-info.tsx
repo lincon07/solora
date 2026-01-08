@@ -36,13 +36,6 @@ export const HubInfoProvider: React.FC<
   /* ---------------- Load Hub ---------------- */
 
 React.useEffect(() => {
-  const token = localStorage.getItem("hubToken")
-
-  if (!token) {
-    console.warn("No hub token yet — skipping fetchHubMe")
-    setLoading(false)
-    return
-  }
 
   ;(async () => {
     try {

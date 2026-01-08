@@ -5,10 +5,11 @@ import {
   Stack,
   Typography,
   IconButton,
-  Avatar,
   ToggleButton,
   ToggleButtonGroup,
   useTheme,
+  alpha,
+  Avatar,
 } from "@mui/material"
 
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
@@ -43,49 +44,32 @@ export function CalendarShell({
   const calendarRef = React.useRef<FullCalendar | null>(null)
 
   const isDark = theme.palette.mode === "dark"
+  const api = () => calendarRef.current?.getApi()
 
   const hourLine = isDark
     ? "rgba(255,255,255,0.08)"
     : "rgba(0,0,0,0.08)"
 
-  const dayLine = isDark
-    ? "rgba(255,255,255,0.14)"
-    : "rgba(0,0,0,0.14)"
-
-  const api = () => calendarRef.current?.getApi()
-
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* =========================
-       * CUSTOM HEADER (MUI)
-       * ========================= */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        mb={1}
-      >
-        {/* LEFT CONTROLS */}
+      {/* ================= HEADER ================= */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
         <Stack direction="row" spacing={0.5}>
           <IconButton onClick={() => api()?.prev()}>
             <ChevronLeftIcon />
           </IconButton>
-
           <IconButton onClick={() => api()?.today()}>
             <TodayIcon />
           </IconButton>
-
           <IconButton onClick={() => api()?.next()}>
             <ChevronRightIcon />
           </IconButton>
         </Stack>
 
-        {/* TITLE */}
         <Typography fontWeight={700} fontSize={16}>
           {api()?.view?.title}
         </Typography>
 
-        {/* VIEW CONTROLS */}
         <ToggleButtonGroup
           size="small"
           exclusive
@@ -98,88 +82,69 @@ export function CalendarShell({
         </ToggleButtonGroup>
       </Stack>
 
-      {/* =========================
-       * CALENDAR
-       * ========================= */}
+      {/* ================= CALENDAR ================= */}
       <Box
         sx={{
           flexGrow: 1,
           overflow: "auto",
 
+          /* base grid */
           "& .fc, & .fc-scrollgrid": { border: "none" },
           "& .fc-theme-standard td, & .fc-theme-standard th": { border: "none" },
 
-          "& .fc-timegrid-axis": { width: 0 },
-          "& .fc-timegrid-axis-frame": { display: "none" },
-          "& .fc-timegrid-divider": { display: "none" },
+          /* hide axis */
+          "& .fc-timegrid-axis, & .fc-timegrid-axis-frame, & .fc-timegrid-divider": {
+            display: "none",
+          },
 
-          "& .fc-timegrid-slot-lane": { borderBottom: "none" },
+          /* hour lines */
           "& .fc-timegrid-slot-lane[data-time$=':00:00']": {
             borderBottom: `1px solid ${hourLine}`,
           },
 
-          "& .fc-timegrid-col:not(:first-of-type)": {
-            boxShadow: `inset -1px 0 0 ${dayLine}`,
-          },
-          "& .fc-timegrid-col:last-of-type": {
-            boxShadow: "none",
+          "& .fc-timegrid-slot": { height: "2.8rem" },
+
+          /* ===== CUSTOM DAY HEADER ===== */
+          "& .fc-col-header-cell-cushion": {
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: theme.palette.text.secondary,
+            padding: "6px 0",
           },
 
-          "& .fc-col-header-cell:not(:first-of-type)": {
-            boxShadow: `inset -1px 0 0 ${dayLine}`,
+          /* ===== APPLE-STYLE TODAY DOT ===== */
+          "& .fc-day-today .fc-daygrid-day-number": {
+            position: "relative",
+            zIndex: 1,
+            color: "#ef4444",
+            fontWeight: 700,
           },
-          "& .fc-col-header-cell:last-of-type": {
-            boxShadow: "none",
-          },
-          "& .fc-col-header-cell-cushion": {
-            padding: "8px 0",
-            fontSize: 13,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-            color: theme.palette.text.secondary,
+          "& .fc-day-today .fc-daygrid-day-number::before": {
+            content: '""',
+            position: "absolute",
+            inset: "-4px",
+            borderRadius: "999px",
+            backgroundColor: alpha("#ef4444", 0.15),
+            zIndex: -1,
           },
 
           "& .fc-day-today": {
             backgroundColor: "transparent !important",
           },
 
-          "& .fc-timegrid-slot": {
-            height: "2.5rem",
+          /* ===== KILL FC EVENT BACKGROUNDS ===== */
+          "& .fc-event, & .fc-event-main, & .fc-event-main-frame": {
+            background: "transparent !important",
+            border: "none !important",
+            boxShadow: "none !important",
           },
 
-          "& .fc-timegrid-event-harness": {
-            zIndex: 5,
+          "& .fc-timegrid-event, & .fc-daygrid-event": {
+            background: "transparent !important",
+            border: "none !important",
           },
-
-          /* ================================
- * MONTH VIEW GRID LINES (dayGrid)
- * ================================ */
-
-          /* vertical day lines */
-          "& .fc-daygrid-day": {
-            boxShadow: `inset -1px 0 0 ${dayLine}`,
-          },
-          "& .fc-daygrid-day:last-of-type": {
-            boxShadow: "none",
-          },
-
-          /* horizontal week lines */
-          "& .fc-daygrid-week": {
-            boxShadow: `inset 0 -1px 0 ${dayLine}`,
-          },
-          "& .fc-daygrid-week:last-of-type": {
-            boxShadow: "none",
-          },
-
-          /* header day names */
-          "& .fc-daygrid-header th:not(:last-of-type)": {
-            boxShadow: `inset -1px 0 0 ${dayLine}`,
-          },
-          "& .fc-daygrid-header th": {
-            border: "none",
-          },
-
         }}
       >
         {loading ? (
@@ -191,7 +156,7 @@ export function CalendarShell({
             ref={calendarRef}
             plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
-            headerToolbar={false} // 🔥 disable FC header
+            headerToolbar={false}
             editable
             selectable
             nowIndicator
@@ -217,41 +182,93 @@ export function CalendarShell({
             }
             eventContent={(arg) => {
               const event = arg.event
+              const props = event.extendedProps || {}
+
+              const color =
+                props.color ||
+                event.backgroundColor ||
+                theme.palette.primary.main
+
+              const fillAlpha = isDark ? 0.18 : 0.1
+
               return (
-                <Stack spacing={0.5}>
-                  <Stack direction="row" justifyContent="space-between">
-                    <Stack spacing={0.25}>
-                      <Typography fontSize={13} fontWeight={700}>
-                        {event.title}
-                      </Typography>
-                      <Typography fontSize={11} color="text.secondary">
-                        {arg.timeText}
-                      </Typography>
-                    </Stack>
+                <Box
+                  sx={{
+                    height: "100%",
+                    px: 1,
+                    py: 0.5,
+                    borderLeft: `3px solid ${color}`,
+                    backgroundColor: alpha(color, fillAlpha),
+                    borderRadius: 1,
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* TITLE */}
+                  <Typography
+                    fontSize={13}
+                    fontWeight={700}
+                    noWrap
+                    sx={{ lineHeight: 1.2 }}
+                  >
+                    {event.title}
+                  </Typography>
 
-                    <Stack direction="row">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onEdit(event)
-                        }}
-                      >
-                        <EditIcon fontSize="inherit" />
-                      </IconButton>
+                  {/* TIME */}
+                  <Typography
+                    fontSize={11}
+                    sx={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo",
+                      color: theme.palette.text.secondary,
+                    }}
+                    noWrap
+                  >
+                    {arg.timeText}
+                  </Typography>
 
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onDelete(event)
-                        }}
-                      >
-                        <DeleteIcon fontSize="inherit" />
-                      </IconButton>
-                    </Stack>
+                  {/* AVATAR */}
+                  <Avatar
+                    src={props.avatar}
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      fontSize: 10,
+                      position: "absolute",
+                      bottom: 6,
+                      left: 6,
+                    }}
+                  >
+                    {props.initials}
+                  </Avatar>
+
+                  {/* ACTIONS */}
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    justifyContent="flex-end"
+                  >
+                    <IconButton
+                      size="small"
+                      sx={{ p: 0.25 }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit(event)
+                      }}
+                    >
+                      <EditIcon fontSize="inherit" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      sx={{ p: 0.25 }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(event)
+                      }}
+                    >
+                      <DeleteIcon fontSize="inherit" />
+                    </IconButton>
                   </Stack>
-                </Stack>
+                </Box>
               )
             }}
           />

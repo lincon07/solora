@@ -8,7 +8,6 @@ import React, { useEffect } from "react"
 import "./assets/main.css"
 import Idle from "./idle/idle"
 import { HeartbeatProvider } from "./providers/heartbeat"
-import HubGate from "./providers/gate"
 function App(): React.JSX.Element {
   const [isIdle, setIsIdle] = React.useState(false)
 
@@ -40,14 +39,12 @@ function App(): React.JSX.Element {
     <MyThemeProvider>
       <BrowserRouter>
         <UpdaterProvider>
-          <HubGate> 
           <HubInfoProvider>
             <HeartbeatProvider>
             <ToastContainer position="bottom-center" />
             {isIdle ? <Idle /> : <MiniDrawer />}
              </HeartbeatProvider>
           </HubInfoProvider>
-          </HubGate>
         </UpdaterProvider>
       </BrowserRouter>
     </MyThemeProvider>

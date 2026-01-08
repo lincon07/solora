@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { ThemePlaygroundModal } from "./ThemePlaygroundModal";
@@ -8,7 +8,15 @@ import { ThemePlaygroundModal } from "./ThemePlaygroundModal";
  * ========================================================= */
 
 export type ThemeMode = "light" | "dark" | "system";
-export type DesignMode = "uko" | "flat";
+
+export type DesignMode =
+  | "material"
+  | "ant"
+  | "saas"
+  | "shadcn"
+  | "flat"
+  | "glass";
+
 export type DensityMode = "cozy" | "compact";
 
 export interface MyThemeContextType {
@@ -26,7 +34,7 @@ export const MyThemeContext =
   React.createContext<MyThemeContextType | null>(null);
 
 /* =========================================================
- * System Theme
+ * System Mode Resolver
  * ========================================================= */
 
 function getSystemTheme(): "light" | "dark" {
@@ -37,129 +45,92 @@ function getSystemTheme(): "light" | "dark" {
 }
 
 /* =========================================================
- * Density Helpers (THE MAGIC)
+ * Density System
  * ========================================================= */
 
 function densityVars(density: DensityMode) {
   return density === "cozy"
-    ? {
-        buttonY: 10,
-        buttonX: 18,
-        inputY: 14,
-        listItemY: 12,
-        borderRadius: 12,
-      }
-    : {
-        buttonY: 6,
-        buttonX: 12,
-        inputY: 8,
-        listItemY: 6,
-        borderRadius: 8,
-      };
+    ? { buttonY: 10, buttonX: 18, inputY: 14, listItemY: 12, radius: 10 }
+    : { buttonY: 6, buttonX: 12, inputY: 8, listItemY: 6, radius: 6 };
 }
 
 /* =========================================================
- * UKO THEME
+ * Base Typography
  * ========================================================= */
 
-function createUKOTheme(
+const baseTypography = {
+  fontFamily:
+    "Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+  h1: { fontWeight: 700 },
+  h2: { fontWeight: 700 },
+  h3: { fontWeight: 600 },
+  h4: { fontWeight: 600 },
+  h5: { fontWeight: 600 },
+  h6: { fontWeight: 600 },
+  button: {
+    textTransform: "none",
+    fontWeight: 500,
+  },
+};
+
+/* =========================================================
+ * SHADCN DESIGN (Neutral / Token-Based)
+ * ========================================================= */
+
+function createShadcnTheme(
   mode: "light" | "dark",
   density: DensityMode
 ) {
-  const isDark = mode === "dark";
   const d = densityVars(density);
+  const isDark = mode === "dark";
 
   return createTheme({
     palette: {
       mode,
-      primary: { main: isDark ? "#4F8CFF" : "#2563EB" },
+      primary: { main: isDark ? "#E5E7EB" : "#111827" },
       background: {
-        default: isDark ? "#0E1117" : "#F9FAFB",
-        paper: isDark ? "#111827" : "#FFFFFF",
+        default: isDark ? "#09090B" : "#FFFFFF",
+        paper: isDark ? "#09090B" : "#FFFFFF",
       },
       text: {
-        primary: isDark ? "#E5E7EB" : "#111827",
-        secondary: isDark ? "#9CA3AF" : "#6B7280",
+        primary: isDark ? "#FAFAFA" : "#09090B",
+        secondary: isDark ? "#A1A1AA" : "#52525B",
       },
-      divider: isDark
-        ? "rgba(255,255,255,0.08)"
-        : "rgba(17,24,39,0.08)",
+      divider: isDark ? "#27272A" : "#E4E4E7",
     },
-
-    shape: {
-      borderRadius: d.borderRadius,
-    },
-
-    typography: {
-      fontFamily:
-        "Inter, system-ui, -apple-system, Segoe UI, Roboto",
-      h1: { fontWeight: 700 },
-      h2: { fontWeight: 700 },
-      h3: { fontWeight: 600 },
-      h4: { fontWeight: 600 },
-      h5: { fontWeight: 600 },
-      h6: { fontWeight: 600 },
-      button: {
-        textTransform: "none",
-        fontWeight: 600,
-      },
-    },
-
+    shape: { borderRadius: d.radius },
+    typography: baseTypography,
     components: {
-      MuiCssBaseline: {
-        styleOverrides: {
-          body: {
-            backgroundColor: isDark ? "#0E1117" : "#F9FAFB",
-          },
-        },
-      },
-
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundImage: "none",
             border: `1px solid ${
-              isDark
-                ? "rgba(255,255,255,0.08)"
-                : "rgba(17,24,39,0.08)"
+              isDark ? "#27272A" : "#E4E4E7"
             }`,
-          },
-        },
-      },
-
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: d.borderRadius,
             boxShadow: "none",
           },
         },
       },
-
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: {
-            borderRadius: d.borderRadius,
             paddingInline: d.buttonX,
             paddingBlock: d.buttonY,
+            border: `1px solid ${
+              isDark ? "#27272A" : "#E4E4E7"
+            }`,
           },
         },
       },
-
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
             paddingBlock: d.inputY,
-          },
-        },
-      },
-
-      MuiListItem: {
-        styleOverrides: {
-          root: {
-            paddingTop: d.listItemY,
-            paddingBottom: d.listItemY,
+            backgroundColor: isDark ? "#09090B" : "#FFFFFF",
+            "& fieldset": {
+              borderColor: isDark ? "#27272A" : "#E4E4E7",
+            },
           },
         },
       },
@@ -168,96 +139,91 @@ function createUKOTheme(
 }
 
 /* =========================================================
- * FLAT THEME
+ * OTHER THEMES (UNCHANGED, CLEANED)
  * ========================================================= */
 
-function createFlatTheme(
-  mode: "light" | "dark",
-  density: DensityMode
-) {
-  const isDark = mode === "dark";
+function createMaterialTheme(mode: "light" | "dark", density: DensityMode) {
   const d = densityVars(density);
-
+  const isDark = mode === "dark";
   return createTheme({
     palette: {
       mode,
-      primary: { main: isDark ? "#7DD3FC" : "#0284C7" },
+      primary: { main: "#1976D2" },
       background: {
-        default: isDark ? "#0B0F14" : "#FFFFFF",
-        paper: isDark ? "#0B0F14" : "#FFFFFF",
-      },
-      text: {
-        primary: isDark ? "#E5E7EB" : "#0F172A",
-        secondary: isDark ? "#94A3B8" : "#475569",
-      },
-      divider: "rgba(0,0,0,0)",
-    },
-
-    shape: {
-      borderRadius: d.borderRadius,
-    },
-
-    typography: {
-      fontFamily:
-        "Inter, system-ui, -apple-system, Segoe UI, Roboto",
-      button: {
-        textTransform: "none",
-        fontWeight: 500,
+        default: isDark ? "#121212" : "#F5F5F5",
+        paper: isDark ? "#1E1E1E" : "#FFFFFF",
       },
     },
+    shape: { borderRadius: d.radius },
+    typography: baseTypography,
+  });
+}
 
-    components: {
-      MuiCssBaseline: {
-        styleOverrides: {
-          body: {
-            backgroundColor: isDark ? "#0B0F14" : "#FFFFFF",
-          },
-        },
+function createAntTheme(mode: "light" | "dark", density: DensityMode) {
+  const isDark = mode === "dark";
+  return createTheme({
+    palette: {
+      mode,
+      primary: { main: "#1677FF" },
+      background: {
+        default: isDark ? "#0F172A" : "#F0F2F5",
+        paper: isDark ? "#020617" : "#FFFFFF",
       },
+      divider: isDark ? "#1E293B" : "#E5E7EB",
+    },
+    shape: { borderRadius: 6 },
+    typography: baseTypography,
+  });
+}
 
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundImage: "none",
-            border: "none",
-            boxShadow: "none",
-          },
-        },
-      },
-
-      MuiButton: {
-        defaultProps: { disableElevation: true },
-        styleOverrides: {
-          root: {
-            borderRadius: 999,
-            paddingInline: d.buttonX,
-            paddingBlock: d.buttonY,
-          },
-        },
-      },
-
-      MuiOutlinedInput: {
-        styleOverrides: {
-          root: {
-            borderRadius: d.borderRadius,
-            paddingBlock: d.inputY,
-            backgroundColor: isDark
-              ? "rgba(255,255,255,0.04)"
-              : "rgba(0,0,0,0.03)",
-            "& fieldset": { border: "none" },
-          },
-        },
-      },
-
-      MuiListItem: {
-        styleOverrides: {
-          root: {
-            paddingTop: d.listItemY,
-            paddingBottom: d.listItemY,
-          },
-        },
+function createSaasTheme(mode: "light" | "dark", density: DensityMode) {
+  const isDark = mode === "dark";
+  return createTheme({
+    palette: {
+      mode,
+      primary: { main: "#4F46E5" },
+      background: {
+        default: isDark ? "#0B0F19" : "#F9FAFB",
+        paper: isDark ? "#111827" : "#FFFFFF",
       },
     },
+    shape: { borderRadius: 10 },
+    typography: baseTypography,
+  });
+}
+
+function createFlatTheme(mode: "light" | "dark", density: DensityMode) {
+  const isDark = mode === "dark";
+  return createTheme({
+    palette: {
+      mode,
+      primary: { main: "#0284C7" },
+      background: {
+        default: isDark ? "#020617" : "#FFFFFF",
+        paper: isDark ? "#020617" : "#FFFFFF",
+      },
+    },
+    shape: { borderRadius: 0 },
+    typography: baseTypography,
+  });
+}
+
+function createGlassTheme(mode: "light" | "dark", density: DensityMode) {
+  const d = densityVars(density);
+  const isDark = mode === "dark";
+  return createTheme({
+    palette: {
+      mode,
+      primary: { main: "#7C9CFF" },
+      background: {
+        default: isDark ? "#05070C" : "#EEF2FF",
+        paper: isDark
+          ? "rgba(20,25,40,0.65)"
+          : "rgba(255,255,255,0.75)",
+      },
+    },
+    shape: { borderRadius: d.radius },
+    typography: baseTypography,
   });
 }
 
@@ -270,23 +236,35 @@ function resolveTheme(
   mode: "light" | "dark",
   density: DensityMode
 ) {
-  return design === "flat"
-    ? createFlatTheme(mode, density)
-    : createUKOTheme(mode, density);
+  switch (design) {
+    case "shadcn":
+      return createShadcnTheme(mode, density);
+    case "material":
+      return createMaterialTheme(mode, density);
+    case "ant":
+      return createAntTheme(mode, density);
+    case "saas":
+      return createSaasTheme(mode, density);
+    case "flat":
+      return createFlatTheme(mode, density);
+    case "glass":
+      return createGlassTheme(mode, density);
+    default:
+      return createShadcnTheme(mode, density);
+  }
 }
 
 /* =========================================================
  * Provider
  * ========================================================= */
 
-export const MyThemeProvider: React.FC<
-  React.PropsWithChildren
-> = ({ children }) => {
+export const MyThemeProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [playgroundOpen, setPlaygroundOpen] = React.useState(false);
-  const [mode, setThemeMode] = React.useState<ThemeMode>("dark");
-  const [design, setDesignMode] = React.useState<DesignMode>("uko");
-  const [density, setDensityMode] =
-    React.useState<DensityMode>("cozy");
+  const [mode, setThemeMode] = React.useState<ThemeMode>("system");
+  const [design, setDesignMode] = React.useState<DesignMode>("shadcn");
+  const [density, setDensityMode] = React.useState<DensityMode>("cozy");
 
   const resolvedMode =
     mode === "system" ? getSystemTheme() : mode;

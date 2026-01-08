@@ -19,6 +19,7 @@ import {
   CalendarMonth,
   Settings,
   ListSharp,
+  Home,
 } from "@mui/icons-material";
 
 import { Routes, Route, useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ import PairSettings from "./pages/settings/pairing/pair";
 import TaskListsPage from "./pages/Lists/task-lists";
 import { useWeatherByPostalCode } from "./hooks/useWeather";
 import { getWeatherIcon } from "./utils/icons_map";
+import HomePage from "./pages/Home/home";
 
 /* ================= Lazy Pages ================= */
 
@@ -183,6 +185,23 @@ export default function AppLayout() {
         >
           <ListItem disablePadding>
             <ListItemButton
+              onClick={() => nav("/")}
+              disableRipple
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: 2,
+                justifyContent: "center",
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: "auto" }}>
+                <Home sx={{ fontSize: 34 }} />
+              </ListItemIcon>
+            </ListItemButton>
+          </ListItem>
+
+           <ListItem disablePadding>
+            <ListItemButton
               onClick={() => nav("/calendar")}
               disableRipple
               sx={{
@@ -250,7 +269,7 @@ export default function AppLayout() {
 
         <React.Suspense fallback={<MainBackdropLoader />}>
           <Routes>
-            <Route path="/" element={<div>Dashboard Page (Coming Soon)</div>} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/pair" element={<PairSettings />} />
