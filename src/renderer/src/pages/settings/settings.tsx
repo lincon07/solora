@@ -23,6 +23,7 @@ import { MyThemeContext } from "@renderer/providers/theme/theme";
 import MembersManagement from "./members-managment";
 import DangerArea from "./danger-area/danger-area";
 import PairSettings from "./pairing/pair";
+import { API_BASE } from "@renderer/utils/api_url";
 
 /* ================= TYPES ================= */
 
@@ -345,6 +346,10 @@ export default function SettingsPage() {
             </Typography>
             <Typography color="text.secondary">
               Version: <strong>{systemConfig?.version ?? "Loading…"}</strong>
+            </Typography>
+
+            <Typography color="text.secondary">
+              API URL: <strong>{API_BASE ?? "Loading…"}</strong>
             </Typography>
           </Box>
         </Stack>
