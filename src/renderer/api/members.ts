@@ -21,38 +21,37 @@ export type HubMember = {
  * Fetch members for a hub
  * ========================================================= */
 
+
 export function fetchHubMembers(hubId: string) {
   return api<{
-    hubId: string;
-    members: HubMember[];
-  }>(`/hub/${hubId}/info/members`);
+    hubId: string
+    members: HubMember[]
+  }>(`/hub/${hubId}/info/members`, {
+    auth: "hub",
+  })
 }
-
-/* =========================================================
- * Create a hub member (REQUIRES userId)
- * ========================================================= */
 
 export function createHubMember(
   hubId: string,
   input: {
-    userId: string;                // ✅ REQUIRED
-    displayName: string;
-    role?: HubMemberRole;
-    avatarUrl?: string | null;
+    userId: string
+    displayName: string
+    role?: HubMemberRole
+    avatarUrl?: string | null
   }
 ) {
-  return api<{
-    member: HubMember;
-  }>(`/hub/${hubId}/members`, {
+  return api<{ member: HubMember }>(`/hub/${hubId}/members`, {
     method: "POST",
+    auth: "hub",
     body: JSON.stringify({
       userId: input.userId,
       displayName: input.displayName,
       role: input.role ?? "member",
       avatarUrl: input.avatarUrl ?? null,
     }),
-  });
+  })
 }
+
 
 /* =========================================================
  * Update hub member

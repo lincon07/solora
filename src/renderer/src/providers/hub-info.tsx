@@ -39,10 +39,18 @@ React.useEffect(() => {
 
   ;(async () => {
     try {
-      const me = await fetchHubMe()
-      if (!me?.hub?.id) return
+    const me = await fetchHubMe();
 
-      setHubId(me.hub.id)
+if (!me) {
+  // device not paired yet
+  setHubId(undefined);
+  return;
+}
+
+if (!me.hub?.id) return;
+
+setHubId(me.hub.id);
+
     } catch (err) {
       console.error("Failed to fetch hub:", err)
     }

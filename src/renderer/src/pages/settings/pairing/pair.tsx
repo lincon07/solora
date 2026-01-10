@@ -43,13 +43,12 @@ export default function PairSettings() {
    * ========================================================= */
   const hubClaim = usePairing({
     type: "hub",
-    onResolved: ({ deviceToken }) => {
-      if (!deviceToken) return;
+    onResolved: async ({ deviceToken }) => {
+  if (!deviceToken) return
 
-      localStorage.setItem("deviceToken", deviceToken);
-      window.location.reload();
-      // navigate 
-    },
+  await window.soloras.pairingComplete(deviceToken)
+}
+
   });
 
   if (loadingHub) {

@@ -40,10 +40,10 @@ function App(): React.JSX.Element {
       <BrowserRouter>
         <UpdaterProvider>
           <HubInfoProvider>
-            <HeartbeatProvider>
+            {/* <HeartbeatProvider> */}
             <ToastContainer position="bottom-center" />
             {isIdle ? <Idle /> : <MiniDrawer />}
-             </HeartbeatProvider>
+             {/* </HeartbeatProvider> */}
           </HubInfoProvider>
         </UpdaterProvider>
       </BrowserRouter>

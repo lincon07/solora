@@ -100,8 +100,9 @@ const system = {
 }
 
 const soloras = {
-  pairingComplete: (deviceToken: string) =>
-    ipcRenderer.invoke("pairing:complete", deviceToken),
+  pairingComplete: (deviceToken: string) =>  ipcRenderer.invoke("pairing:complete", deviceToken),
+  getDeviceToken: () => ipcRenderer.invoke("device:get-token"),
+
 
 }
 // Placeholder for future app APIs

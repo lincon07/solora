@@ -31,7 +31,7 @@ export interface HubTask {
 /** Get all active task lists for hub */
 export async function fetchTaskLists(hubId: string) {
     const res = await fetch(`${API_BASE}/hub/${hubId}/task-lists`, {
-        headers: hubAuthHeaders(),
+        headers: await hubAuthHeaders(),
     })
 
     if (!res.ok) {

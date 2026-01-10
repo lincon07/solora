@@ -18,6 +18,7 @@ declare global {
     }
     soloras: {
       pairingComplete: (deviceToken: string) => Promise<void>
+      getDeviceToken: () => Promise<string | null>
     }
     system: {
       getSystemConfiguration: () => Promise<any>

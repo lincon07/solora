@@ -4,8 +4,19 @@ export function userAuthHeaders() {
   };
 }
 
-export function hubAuthHeaders() {
+export async function hubAuthHeaders(): Promise<HeadersInit> {
+  if (!window.soloras?.getDeviceToken) {
+    console.warn("[auth] getDeviceToken not available")
+    return {}
+  }
+
+  const token = await window.soloras.getDeviceToken()
+
+  if (!token) {
+    return {}
+  }
+
   return {
-    Authorization: `Bearer ${localStorage.getItem("deviceToken")}`,
-  };
+    Authorization: `Bearer ${token}`,
+  }
 }

@@ -1,50 +1,104 @@
-import { API_BASE } from "@renderer/utils/api_url";
+import { API_BASE } from "@renderer/utils/api_url"
 
-function getHubToken() {
-  return localStorage.getItem("deviceToken");
+/* =========================================================
+ * Types
+ * ========================================================= */
+
+type ApiOptions = RequestInit & {
+  auth?: "hub" | "user" | "none"
 }
+
+/* =========================================================
+ * Token helpers (Electron-safe)
+ * ========================================================= */
+
+async function getHubToken(): Promise<string | null> {
+  if (!window.soloras?.getDeviceToken) {
+    console.warn("[api] getDeviceToken not available")
+    return null
+  }
+  return await window.soloras.getDeviceToken()
+}
+
+async function getUserToken(): Promise<string | null> {
+  if (!window.soloras?.getUserToken) {
+    console.warn("[api] getUserToken not available")
+    return null
+  }
+  return await window.soloras.getUserToken()
+}
+
+/* =========================================================
+ * Core API client
+ * ========================================================= */
 
 export async function api<T>(
   path: string,
-  options: RequestInit = {}
+  options: ApiOptions = {}
 ): Promise<T> {
-  const token = getHubToken();
+  const { auth = "hub", headers, ...rest } = options
+
+  let authHeader: HeadersInit = {}
+
+  if (auth === "hub") {
+    const token = await getHubToken()
+    if (!token) {
+      throw new Error("Missing hub token")
+    }
+    authHeader = { Authorization: `Bearer ${token}` }
+  }
+
+  if (auth === "user") {
+    const token = await getUserToken()
+    if (!token) {
+      throw new Error("Missing user token")
+    }
+    authHeader = { Authorization: `Bearer ${token}` }
+  }
 
   const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
+    ...rest,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
+      ...authHeader,
+      ...(headers || {}),
     },
-  });
+  })
 
-  /* ---------- Error handling ---------- */
+  /* =========================================================
+   * Error handling
+   * ========================================================= */
+
+  if (res.status === 401) {
+    throw new Error("Unauthorized")
+  }
+
   if (!res.ok) {
-    let message = "API error";
+    let message = `HTTP ${res.status}`
 
     try {
-      const data = await res.json();
-      message = data?.error || message;
+      const data = await res.json()
+      message = data?.error || message
     } catch {
-      // backend may return empty body or text
-      message = res.statusText || message;
+      message = res.statusText || message
     }
 
-    throw new Error(message);
+    throw new Error(message)
   }
 
-  /* ---------- ✅ CRITICAL FIX ---------- */
-  // 204 No Content (DELETE, some PATCH)
+  /* =========================================================
+   * Response handling
+   * ========================================================= */
+
+  // 204 No Content
   if (res.status === 204) {
-    return undefined as T;
+    return undefined as T
   }
 
-  // Empty body safety (Electron / proxies)
-  const text = await res.text();
+  const text = await res.text()
   if (!text) {
-    return undefined as T;
+    return undefined as T
   }
 
-  return JSON.parse(text) as T;
+  return JSON.parse(text) as T
 }

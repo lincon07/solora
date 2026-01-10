@@ -1,6 +1,6 @@
 // src/main/pairing-ipc.ts
 import { ipcMain, app } from "electron"
-import { setDeviceToken } from "./device"
+import { getDeviceToken, setDeviceToken } from "./device"
 import os from "os"
 import { exec } from "child_process"
 
@@ -67,4 +67,9 @@ ipcMain.handle("pairing:complete", async (_event, deviceToken: string) => {
   // Relaunch into authenticated mode
   app.relaunch()
   app.exit(0)
+})
+
+
+ipcMain.handle("device:get-token", () => {
+  return getDeviceToken()
 })

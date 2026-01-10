@@ -280,6 +280,21 @@ export default function SettingsPage() {
       ],
     },
     {
+      key: "design",
+      label: "Design",
+      description: "Select the application design.",
+      type: "select" as const,
+      defaultValue: theme?.design || "shadcn",
+      options: [
+        { label: "Shadcn", value: "shadcn", action: () => theme?.setDesignMode("ant") },
+        { label: "Ant", value: "ant", action: () => theme?.setDesignMode("flat") },
+        { label: "glass", value: "glass", action: () => theme?.setDesignMode("glass") },
+        { label: "Material", value: "material", action: () => theme?.setDesignMode("material") },
+        { label: "Saas", value: "saas", action: () => theme?.setDesignMode("saas") },
+        { label: "Shadcn", value: "shadcn", action: () => theme?.setDesignMode("shadcn") },
+      ],
+    },
+    {
       key: "density",
       label: "Density",
       description: "Select UI density.",

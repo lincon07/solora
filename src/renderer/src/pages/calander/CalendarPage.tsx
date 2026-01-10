@@ -26,6 +26,7 @@ import { CreateCalendarDialog } from "./dialogs/CreateCalendarDialog"
 import { mapEvents } from "@renderer/utils/calendarMappers"
 import { toUSVString } from "util"
 import { toast } from "react-toastify"
+import CalaendarMembersPage from "./calaendar-members"
 
 export default function CalendarPage() {
   const hub = React.useContext(HubInfoContext)
@@ -120,6 +121,8 @@ export default function CalendarPage() {
             // optional delete flow
           }}
         />
+
+        <CalaendarMembersPage members={hub?.members || []} />
       </Stack>
 
       {/* CALENDAR */}
