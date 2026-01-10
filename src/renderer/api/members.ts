@@ -1,26 +1,25 @@
-import { api } from "./client";
+import { api } from "./client"
 
 /* =========================================================
  * Types
  * ========================================================= */
 
-export type HubMemberRole = "owner" | "member";
+export type HubMemberRole = "owner" | "member"
 
 export type HubMember = {
-  id: string;
-  hubId: string;
-  userId: string;                  // ✅ STRICT link to user
-  displayName: string;
-  role: HubMemberRole;
-  isActive: boolean;
-  createdAt: string;
-  avatarUrl?: string | null;
-};
+  id: string
+  hubId: string
+  userId: string
+  displayName: string
+  role: HubMemberRole
+  isActive: boolean
+  createdAt: string
+  avatarUrl?: string | null
+}
 
 /* =========================================================
- * Fetch members for a hub
+ * Fetch members
  * ========================================================= */
-
 
 export function fetchHubMembers(hubId: string) {
   return api<{
@@ -30,6 +29,10 @@ export function fetchHubMembers(hubId: string) {
     auth: "hub",
   })
 }
+
+/* =========================================================
+ * Create member
+ * ========================================================= */
 
 export function createHubMember(
   hubId: string,
@@ -47,56 +50,59 @@ export function createHubMember(
       userId: input.userId,
       displayName: input.displayName,
       role: input.role ?? "member",
-      avatarUrl: input.avatarUrl ?? null,
+      avatarUrl:
+        input.avatarUrl && input.avatarUrl.trim().length > 0
+          ? input.avatarUrl.trim()
+          : null,
     }),
   })
 }
 
-
 /* =========================================================
- * Update hub member
+ * Update member
  * ========================================================= */
 
 export function updateHubMember(
   hubId: string,
   memberId: string,
   input: {
-    displayName?: string;
-    role?: HubMemberRole;
-    isActive?: boolean;
-    avatarUrl?: string | null;
+    displayName?: string
+    role?: HubMemberRole
+    isActive?: boolean
+    avatarUrl?: string | null
   }
 ) {
-  return api<{
-    member: HubMember;
-  }>(`/hub/${hubId}/members/${memberId}`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      ...(input.displayName !== undefined && {
-        displayName: input.displayName,
+  return api<{ member: HubMember }>(
+    `/hub/${hubId}/members/${memberId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        ...(input.displayName !== undefined && {
+          displayName: input.displayName,
+        }),
+        ...(input.role !== undefined && {
+          role: input.role,
+        }),
+        ...(input.isActive !== undefined && {
+          isActive: input.isActive,
+        }),
+        ...(input.avatarUrl !== undefined && {
+          avatarUrl:
+            input.avatarUrl && input.avatarUrl.trim().length > 0
+              ? input.avatarUrl.trim()
+              : null,
+        }),
       }),
-      ...(input.role !== undefined && {
-        role: input.role,
-      }),
-      ...(input.isActive !== undefined && {
-        isActive: input.isActive,
-      }),
-      ...(input.avatarUrl !== undefined && {
-        avatarUrl: input.avatarUrl,
-      }),
-    }),
-  });
+    }
+  )
 }
 
 /* =========================================================
- * Delete hub member
+ * Delete member
  * ========================================================= */
 
-export function deleteHubMember(
-  hubId: string,
-  memberId: string
-) {
+export function deleteHubMember(hubId: string, memberId: string) {
   return api<void>(`/hub/${hubId}/members/${memberId}`, {
     method: "DELETE",
-  });
+  })
 }

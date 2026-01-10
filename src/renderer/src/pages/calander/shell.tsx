@@ -22,6 +22,7 @@ import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import { json } from "stream/consumers"
 
 type Props = {
   loading: boolean
@@ -183,7 +184,7 @@ export function CalendarShell({
             eventContent={(arg) => {
               const event = arg.event
               const props = event.extendedProps || {}
-
+              const profileUrl = props.profileUrl as string | undefined
               const color =
                 props.color ||
                 event.backgroundColor ||
@@ -228,7 +229,7 @@ export function CalendarShell({
 
                   {/* AVATAR */}
                   <Avatar
-                    src={props.avatar}
+                    src={props.avatar ?? undefined}
                     sx={{
                       width: 20,
                       height: 20,
@@ -238,8 +239,12 @@ export function CalendarShell({
                       left: 6,
                     }}
                   >
-                    {props.initials}
+                    {props.initials || "?"}
                   </Avatar>
+
+                  <code>
+                    {props?.avatar}
+                  </code>
 
                   {/* ACTIONS */}
                   <Stack

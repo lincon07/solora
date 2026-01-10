@@ -1,4 +1,5 @@
 import { API_BASE } from "@renderer/utils/api_url"
+import { toast } from "react-toastify"
 
 /* =========================================================
  * Types
@@ -83,6 +84,7 @@ export async function api<T>(
       message = res.statusText || message
     }
 
+    toast.error(`API Error: ${message}`)
     throw new Error(message)
   }
 

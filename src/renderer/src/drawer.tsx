@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"
 import {
   Box,
   Drawer,
@@ -13,35 +13,36 @@ import {
   Backdrop,
   Typography,
   Stack,
-} from "@mui/material";
+} from "@mui/material"
 
 import {
   CalendarMonth,
   Settings,
   ListSharp,
   Home,
-} from "@mui/icons-material";
+  Lock,
+} from "@mui/icons-material"
 
-import { Routes, Route, useNavigate } from "react-router-dom";
-import PairSettings from "./pages/settings/pairing/pair";
-import TaskListsPage from "./pages/Lists/task-lists";
-import { useWeatherByPostalCode } from "./hooks/useWeather";
-import { getWeatherIcon } from "./utils/icons_map";
-import HomePage from "./pages/Home/home";
+import { Routes, Route, useNavigate } from "react-router-dom"
 
-/* ================= Lazy Pages ================= */
+import PairSettings from "./pages/settings/pairing/pair"
+import TaskListsPage from "./pages/Lists/task-lists"
+import HomePage from "./pages/Home/home"
 
-const CalendarPage = React.lazy(() =>
-  import("./pages/calander/CalendarPage")
-);
+import { useWeatherByPostalCode } from "./hooks/useWeather"
+import { getWeatherIcon } from "./utils/icons_map"
+import { HubInfoContext } from "./providers/hub-info"
+import CalendarPage from "./pages/calander/page"
+
+
 
 const SettingsPage = React.lazy(() =>
   import("./pages/settings/settings")
-);
+)
 
 /* ================= Constants ================= */
 
-const drawerWidth = 88;
+const drawerWidth = 88
 
 /* ================= Loader ================= */
 
@@ -64,21 +65,67 @@ function MainBackdropLoader() {
         Loading…
       </Typography>
     </Backdrop>
-  );
+  )
+}
+
+/* ================= Pairing Lock Overlay ================= */
+
+function PairingLockOverlay() {
+  return (
+    <Backdrop
+      open
+      sx={{
+        zIndex: (theme) => theme.zIndex.drawer + 10,
+        backdropFilter: "blur(6px)",
+        backgroundColor: "rgba(0,0,0,0.65)",
+      }}
+    >
+      <Stack spacing={2} alignItems="center" textAlign="center">
+        <Lock sx={{ fontSize: 64, color: "warning.main" }} />
+        <Typography variant="h5" fontWeight={700}>
+          Device Not Paired
+        </Typography>
+        <Typography color="text.secondary" maxWidth={320}>
+          This device must be paired with a hub before it can be used.
+          Please complete pairing in Settings.
+        </Typography>
+      </Stack>
+    </Backdrop>
+  )
 }
 
 /* ================= Layout ================= */
 
 export default function AppLayout() {
-  const nav = useNavigate();
-  const { weather } = useWeatherByPostalCode("95864");
-  const [now, setNow] = React.useState(new Date());
+  const nav = useNavigate()
+  const hubInfo = React.useContext(HubInfoContext)
 
-  /* live clock (updates every second) */
+  const paired = hubInfo?.paired ?? false
+  const loading = hubInfo?.loading ?? true
+
+  const { weather } = useWeatherByPostalCode("95864")
+  const [now, setNow] = React.useState(new Date())
+
+  /* ================= Live Clock ================= */
+
   React.useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  /* ================= Force Pairing Route ================= */
+
+  React.useEffect(() => {
+    if (!loading && !paired) {
+      nav("/settings/pair", { replace: true })
+    }
+  }, [paired, loading, nav])
+
+  /* ================= Loading Gate ================= */
+
+  if (loading) {
+    return <MainBackdropLoader />
+  }
 
   return (
     <Box sx={{ display: "flex", width: "100vw", height: "100vh" }}>
@@ -98,7 +145,7 @@ export default function AppLayout() {
             Solora
           </Typography>
 
-          {/* CENTER (TIME + DATE) */}
+          {/* CENTER */}
           <Box
             sx={{
               position: "absolute",
@@ -108,11 +155,7 @@ export default function AppLayout() {
               pointerEvents: "none",
             }}
           >
-            <Typography
-              variant="h4"
-              fontWeight={600}
-              sx={{ lineHeight: 1 }}
-            >
+            <Typography variant="h4" fontWeight={600} sx={{ lineHeight: 1 }}>
               {now.toLocaleTimeString()}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -125,26 +168,20 @@ export default function AppLayout() {
             </Typography>
           </Box>
 
-          {/* RIGHT (WEATHER) */}
+          {/* RIGHT */}
           {weather && (
             <Stack
               direction="row"
               spacing={1}
               alignItems="center"
-              sx={{
-                position: "absolute",
-                right: 16,
-              }}
+              sx={{ position: "absolute", right: 16 }}
             >
               {getWeatherIcon(weather.iconCode)}
               <Box textAlign="right">
                 <Typography fontWeight={600}>
                   {weather.temp}°F
                 </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                >
+                <Typography variant="caption" color="text.secondary">
                   {weather.label}
                 </Typography>
               </Box>
@@ -153,7 +190,7 @@ export default function AppLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* ================= Icon Drawer ================= */}
+      {/* ================= Drawer ================= */}
       <Drawer
         variant="permanent"
         sx={{
@@ -166,6 +203,8 @@ export default function AppLayout() {
             borderColor: "divider",
             display: "flex",
             alignItems: "center",
+            opacity: paired ? 1 : 0.5,
+            pointerEvents: paired ? "auto" : "none",
           },
         }}
       >
@@ -183,79 +222,26 @@ export default function AppLayout() {
             py: 2,
           }}
         >
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => nav("/")}
-              disableRipple
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: 2,
-                justifyContent: "center",
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "auto" }}>
-                <Home sx={{ fontSize: 34 }} />
-              </ListItemIcon>
-            </ListItemButton>
-          </ListItem>
-
-           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => nav("/calendar")}
-              disableRipple
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: 2,
-                justifyContent: "center",
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "auto" }}>
-                <CalendarMonth sx={{ fontSize: 34 }} />
-              </ListItemIcon>
-            </ListItemButton>
-          </ListItem>
-
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => nav("/task-lists")}
-              disableRipple
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: 2,
-                justifyContent: "center",
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "auto" }}>
-                <ListSharp sx={{ fontSize: 34 }} />
-              </ListItemIcon>
-            </ListItemButton>
-          </ListItem>
+          <NavIcon icon={<Home sx={{ fontSize: 34 }} />} onClick={() => nav("/")} />
+          <NavIcon
+            icon={<CalendarMonth sx={{ fontSize: 34 }} />}
+            onClick={() => nav("/calendar")}
+          />
+          <NavIcon
+            icon={<ListSharp sx={{ fontSize: 34 }} />}
+            onClick={() => nav("/task-lists")}
+          />
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => nav("/settings")}
-              disableRipple
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: 2,
-                justifyContent: "center",
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "auto" }}>
-                <Settings sx={{ fontSize: 34 }} />
-              </ListItemIcon>
-            </ListItemButton>
-          </ListItem>
+          <NavIcon
+            icon={<Settings sx={{ fontSize: 34 }} />}
+            onClick={() => nav("/settings")}
+          />
         </List>
       </Drawer>
 
-      {/* ================= Main Content ================= */}
+      {/* ================= Main ================= */}
       <Box
         component="main"
         sx={{
@@ -267,16 +253,53 @@ export default function AppLayout() {
       >
         <Toolbar />
 
+
         <React.Suspense fallback={<MainBackdropLoader />}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            {/* Always allowed */}
             <Route path="/settings/pair" element={<PairSettings />} />
-            <Route path="/task-lists" element={<TaskListsPage />} />
+
+            {/* Locked routes */}
+            {paired && (
+              <>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/task-lists" element={<TaskListsPage />} />
+              </>
+            )}
           </Routes>
         </React.Suspense>
       </Box>
     </Box>
-  );
+  )
+}
+
+/* ================= Icon Button ================= */
+
+function NavIcon({
+  icon,
+  onClick,
+}: {
+  icon: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <ListItem disablePadding>
+      <ListItemButton
+        onClick={onClick}
+        disableRipple
+        sx={{
+          width: 64,
+          height: 64,
+          borderRadius: 2,
+          justifyContent: "center",
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: "auto" }}>
+          {icon}
+        </ListItemIcon>
+      </ListItemButton>
+    </ListItem>
+  )
 }

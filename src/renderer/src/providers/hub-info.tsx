@@ -1,115 +1,113 @@
-import React from "react";
-import { fetchHubMe } from "../../api/hub";
-import { fetchHubMembers, HubMember } from "../../api/members";
-import { fetchTodos, Todo } from "../../api/todos";
+import React from "react"
+import { fetchHubMe } from "../../api/hub"
+import { fetchHubMembers, HubMember } from "../../api/members"
+import { fetchTodos, Todo } from "../../api/todos"
 
 /* =========================================================
  * Types
  * ========================================================= */
 
 export type HubMemberWithTodos = HubMember & {
-  todos: Todo[];
-};
+  todos: Todo[]
+}
 
 export interface HubInfoContextType {
-  hubId?: string;
-  members: HubMemberWithTodos[];
-  loading: boolean;
-  refreshMembers: () => Promise<void>;
+  hubId?: string
+  paired: boolean
+  members: HubMemberWithTodos[]
+  loading: boolean
+  refreshMembers: () => Promise<void>
 }
 
 export const HubInfoContext =
-  React.createContext<HubInfoContextType | null>(null);
+  React.createContext<HubInfoContextType | null>(null)
 
 /* =========================================================
  * Provider
  * ========================================================= */
 
-export const HubInfoProvider: React.FC<
-  React.PropsWithChildren
-> = ({ children }) => {
-  const [hubId, setHubId] = React.useState<string>();
-  const [members, setMembers] =
-    React.useState<HubMemberWithTodos[]>([]);
-  const [loading, setLoading] = React.useState(true);
+export const HubInfoProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const [hubId, setHubId] = React.useState<string>()
+  const [paired, setPaired] = React.useState(false)
+  const [members, setMembers] = React.useState<HubMemberWithTodos[]>([])
+  const [loading, setLoading] = React.useState(true)
 
   /* ---------------- Load Hub ---------------- */
 
-React.useEffect(() => {
+  React.useEffect(() => {
+    let mounted = true
 
-  ;(async () => {
-    try {
-    const me = await fetchHubMe();
+    ;(async () => {
+      try {
+        const me = await fetchHubMe()
 
-if (!me) {
-  // device not paired yet
-  setHubId(undefined);
-  return;
-}
+        if (!mounted) return
 
-if (!me.hub?.id) return;
+        // ✅ Not paired
+        if (!me || !me.hub?.id) {
+          setHubId(undefined)
+          setPaired(false)
+          setLoading(false)
+          return
+        }
 
-setHubId(me.hub.id);
+        // ✅ Paired
+        setHubId(me.hub.id)
+        setPaired(true)
+        setLoading(false)
+      } catch (err) {
+        console.error("Failed to fetch hub:", err)
+        setPaired(false)
+        setLoading(false)
+      }
+    })()
 
-    } catch (err) {
-      console.error("Failed to fetch hub:", err)
+    return () => {
+      mounted = false
     }
-  })()
-}, [])
+  }, [])
 
   /* ---------------- Load Members + Todos ---------------- */
 
   const refreshMembers = React.useCallback(async () => {
-    if (!hubId) return;
+    if (!hubId) return
 
-    setLoading(true);
+    setLoading(true)
 
     try {
-      const res = await fetchHubMembers(hubId);
+      const res = await fetchHubMembers(hubId)
 
-      const hydrated: HubMemberWithTodos[] =
-        await Promise.all(
-          res.members.map(async (member) => {
-            try {
-              const todosRes = await fetchTodos(
-                hubId,
-                member.id
-              );
+      const hydrated = await Promise.all(
+        res.members.map(async (member) => {
+          try {
+            const todosRes = await fetchTodos(hubId, member.id)
+            return { ...member, todos: todosRes.todos ?? [] }
+          } catch {
+            return { ...member, todos: [] }
+          }
+        })
+      )
 
-              return {
-                ...member,
-                todos: todosRes.todos ?? [],
-              };
-            } catch {
-              return {
-                ...member,
-                todos: [],
-              };
-            }
-          })
-        );
-
-      setMembers(hydrated);
+      setMembers(hydrated)
     } catch (err) {
-      console.error("Failed to load members:", err);
+      console.error("Failed to load members:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [hubId]);
-
-  /* ---------------- Auto refresh ---------------- */
+  }, [hubId])
 
   React.useEffect(() => {
-    if (!hubId) return;
-    refreshMembers();
-  }, [hubId, refreshMembers]);
-
-  /* ---------------- Provider ---------------- */
+    if (!hubId) return
+    refreshMembers()
+  }, [hubId, refreshMembers])
 
   return (
     <HubInfoContext.Provider
       value={{
         hubId,
+        paired,
         members,
         loading,
         refreshMembers,
@@ -117,5 +115,5 @@ setHubId(me.hub.id);
     >
       {children}
     </HubInfoContext.Provider>
-  );
-};
+  )
+}

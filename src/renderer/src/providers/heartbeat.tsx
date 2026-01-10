@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react"
-import { fetchHeartBeat } from "../../api/heartbeat"
+import { fetchHealth } from "../../api/health"
 import { HubInfoContext } from "./hub-info"
 
 import {
@@ -37,6 +37,7 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const hubInfo = useContext(HubInfoContext)
   const hubId = hubInfo?.hubId
+  const paired = hubInfo?.paired
 
   const [isConnected, setIsConnected] = useState<boolean | null>(null)
   const [checking, setChecking] = useState(false)
@@ -44,7 +45,7 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
   const timeoutRef = useRef<number | null>(null)
 
   /* ========================================================= */
-  /* FAIL-SAFE */
+  /* FAIL SAFE */
   /* ========================================================= */
 
   const startFailSafe = () => {
@@ -72,7 +73,7 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
       setChecking(true)
       startFailSafe()
 
-      const res = await fetchHeartBeat(hubId)
+      const res = await fetchHealth()
 
       if (res.ok) {
         clearFailSafe()
@@ -88,28 +89,28 @@ export const HeartbeatProvider: React.FC<React.PropsWithChildren> = ({
   }
 
   /* ========================================================= */
-  /* INIT + POLLING */
+  /* INIT */
   /* ========================================================= */
 
+  useEffect(() => {
+    if (!paired) {
+      // ✅ Do NOT block UI when not paired
+      setIsConnected(true)
+      return
+    }
 
-useEffect(() => {
-  if (!hubId) {
-    console.warn("Heartbeat paused — no hubId yet")
-    return
-  }
+    setIsConnected(null)
+    checkApi()
 
-  setIsConnected(null)
-  checkApi()
-
-  const interval = setInterval(checkApi, 15_000)
-  return () => clearInterval(interval)
-}, [hubId])
+    const interval = setInterval(checkApi, 15_000)
+    return () => clearInterval(interval)
+  }, [hubId, paired])
 
   /* ========================================================= */
   /* LOADING */
   /* ========================================================= */
 
-  if (isConnected === null) {
+  if (paired && isConnected === null) {
     return (
       <Backdrop open sx={{ zIndex: 1300 }}>
         <Stack spacing={2} alignItems="center">
@@ -126,7 +127,7 @@ useEffect(() => {
   /* DISCONNECTED */
   /* ========================================================= */
 
-  if (!isConnected) {
+  if (paired && !isConnected) {
     return (
       <Backdrop
         open
@@ -136,36 +137,22 @@ useEffect(() => {
           backgroundColor: "rgba(0,0,0,0.6)",
         }}
       >
-        <Card
-          sx={{
-            width: "100%",
-            maxWidth: 420,
-            mx: 2,
-            borderRadius: 4,
-            boxShadow: 24,
-          }}
-        >
+        <Card sx={{ maxWidth: 420, mx: 2, borderRadius: 4 }}>
           <CardContent>
-            <Stack spacing={3} alignItems="center" textAlign="center">
+            <Stack spacing={3} alignItems="center">
               <CloudOffIcon sx={{ fontSize: 64, color: "error.main" }} />
-
               <Typography variant="h5" fontWeight={600}>
                 API Disconnected
               </Typography>
-
-              <Typography color="text.secondary">
+              <Typography color="text.secondary" textAlign="center">
                 Your hub can’t reach the API service.
-                <br />
-                Check your internet connection and try again.
               </Typography>
-
               <Button
                 variant="contained"
-                size="large"
                 startIcon={<RefreshIcon />}
                 onClick={checkApi}
                 disabled={checking}
-                sx={{ width: "100%" }}
+                fullWidth
               >
                 {checking ? "Reconnecting…" : "Retry Connection"}
               </Button>
@@ -175,10 +162,6 @@ useEffect(() => {
       </Backdrop>
     )
   }
-
-  /* ========================================================= */
-  /* CONNECTED */
-  /* ========================================================= */
 
   return (
     <HeartbeatContext.Provider value={{ isConnected: true }}>

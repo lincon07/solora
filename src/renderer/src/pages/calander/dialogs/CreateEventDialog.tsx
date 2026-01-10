@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"
 import {
   Dialog,
   DialogTitle,
@@ -10,200 +10,111 @@ import {
   Typography,
   ToggleButtonGroup,
   ToggleButton,
-} from "@mui/material";
+  Avatar,
+} from "@mui/material"
+
+type CalendarMember = {
+  id: string
+  displayName: string
+  avatarUrl?: string | null
+}
 
 type Props = {
-  open: boolean;
-  initialStart?: Date | null;
-  initialEnd?: Date | null;
-  onClose: () => void;
+  open: boolean
+  initialStart?: Date | null
+  initialEnd?: Date | null
+  members: CalendarMember[]
+  onClose: () => void
   onCreate: (data: {
-    id: string;
-    title: string;
-    startAt: Date;
-    endAt: Date;
-    color: string;
-  }) => Promise<void> | void;
-};
-
-/* ================= Color Options ================= */
-
-const EVENT_COLORS = [
-  "#3b82f6", // blue
-  "#22c55e", // green
-  "#a855f7", // purple
-  "#f97316", // orange
-  "#ef4444", // red
-  "#06b6d4", // cyan
-];
-
-/* ================= Helpers ================= */
-
-function toLocalInputValue(date: Date) {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    title: string
+    startAt: Date
+    endAt: Date
+    color: string
+    createdByMemberId: string
+  }) => Promise<void> | void
 }
 
-function parseLocalInputValue(value: string) {
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? null : d;
-}
+const EVENT_COLORS = ["#3b82f6", "#22c55e", "#a855f7", "#f97316", "#ef4444"]
 
-/* ================= Dialog ================= */
+function toLocal(date: Date) {
+  return date.toISOString().slice(0, 16)
+}
 
 export function CreateEventDialog({
   open,
   initialStart,
   initialEnd,
+  members,
   onClose,
   onCreate,
 }: Props) {
-  const [title, setTitle] = React.useState("");
-  const [start, setStart] = React.useState<Date | null>(null);
-  const [end, setEnd] = React.useState<Date | null>(null);
-  const [color, setColor] = React.useState<string>(EVENT_COLORS[0]);
-  const [saving, setSaving] = React.useState(false);
+  const [title, setTitle] = React.useState("")
+  const [start, setStart] = React.useState<Date | null>(null)
+  const [end, setEnd] = React.useState<Date | null>(null)
+  const [color, setColor] = React.useState(EVENT_COLORS[0])
+  const [creatorId, setCreatorId] = React.useState("")
 
   React.useEffect(() => {
-    if (!open) {
-      setTitle("");
-      setStart(null);
-      setEnd(null);
-      setColor(EVENT_COLORS[0]);
-      setSaving(false);
-      return;
-    }
-
-    const base = initialStart ?? new Date();
-    setTitle("");
-    setStart(base);
-    setEnd(initialEnd ?? new Date(base.getTime() + 60 * 60 * 1000));
-    setColor(EVENT_COLORS[0]);
-  }, [open, initialStart, initialEnd]);
-
-  const error =
-    !title.trim()
-      ? "Title required"
-      : !start || !end
-      ? "Start and end required"
-      : end <= start
-      ? "End must be after start"
-      : null;
+    if (!open) return
+    const base = initialStart ?? new Date()
+    setTitle("")
+    setStart(base)
+    setEnd(initialEnd ?? new Date(base.getTime() + 3600000))
+    setCreatorId(members[0]?.id ?? "")
+  }, [open, initialStart, initialEnd, members])
 
   const submit = async () => {
-    if (error || !start || !end) return;
-
-    setSaving(true);
-    try {
-      await onCreate({
-        id: crypto.randomUUID(),
-        title: title.trim(),
-        startAt: start,
-        endAt: end,
-        color,
-      });
-      onClose();
-    } finally {
-      setSaving(false);
-    }
-  };
+    if (!title || !start || !end || !creatorId) return
+    await onCreate({ title, startAt: start, endAt: end, color, createdByMemberId: creatorId })
+    onClose()
+  }
 
   return (
-    <Dialog
-      open={open}
-      onClose={saving ? undefined : onClose}
-      fullWidth
-      maxWidth="sm"
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Create Event</DialogTitle>
-
       <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <TextField
-            autoFocus
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={saving}
-            fullWidth
-          />
+        <Stack spacing={2}>
+          <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
 
           <TextField
             label="Start"
             type="datetime-local"
-            value={start ? toLocalInputValue(start) : ""}
-            onChange={(e) =>
-              setStart(parseLocalInputValue(e.target.value))
-            }
-            disabled={saving}
-            InputLabelProps={{ shrink: true }}
+            value={start ? toLocal(start) : ""}
+            onChange={(e) => setStart(new Date(e.target.value))}
           />
 
           <TextField
             label="End"
             type="datetime-local"
-            value={end ? toLocalInputValue(end) : ""}
-            onChange={(e) =>
-              setEnd(parseLocalInputValue(e.target.value))
-            }
-            disabled={saving}
-            InputLabelProps={{ shrink: true }}
+            value={end ? toLocal(end) : ""}
+            onChange={(e) => setEnd(new Date(e.target.value))}
           />
 
-          {/* ================= COLOR PICKER ================= */}
-          <Stack spacing={0.5}>
-            <Typography fontSize={13} fontWeight={600}>
-              Color
-            </Typography>
+          <Typography fontSize={13} fontWeight={600}>
+            Event creator
+          </Typography>
 
-            <ToggleButtonGroup
-              exclusive
-              value={color}
-              onChange={(_, v) => v && setColor(v)}
-              size="small"
-            >
-              {EVENT_COLORS.map((c) => (
-                <ToggleButton
-                  key={c}
-                  value={c}
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    p: 0,
-                    borderRadius: 1,
-                    backgroundColor: c,
-                    border: "2px solid transparent",
-                    "&.Mui-selected": {
-                      borderColor: "#000",
-                    },
-                  }}
-                />
-              ))}
-            </ToggleButtonGroup>
-          </Stack>
-
-          {error && (
-            <Typography color="error" fontSize={13}>
-              {error}
-            </Typography>
-          )}
+          <ToggleButtonGroup
+            exclusive
+            value={creatorId}
+            onChange={(_, v) => v && setCreatorId(v)}
+          >
+            {members.map((m) => (
+              <ToggleButton key={m.id} value={m.id}>
+                <Avatar src={m.avatarUrl ?? undefined} sx={{ width: 20, height: 20, mr: 1 }} />
+                {m.displayName}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
         </Stack>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={submit}
-          disabled={!!error || saving}
-        >
-          {saving ? "Creating…" : "Create"}
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" onClick={submit}>
+          Create
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
