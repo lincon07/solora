@@ -20,7 +20,6 @@ import {
   Settings,
   ListSharp,
   Home,
-  Lock,
 } from "@mui/icons-material"
 
 import { Routes, Route, useNavigate } from "react-router-dom"
@@ -70,29 +69,29 @@ function MainBackdropLoader() {
 
 /* ================= Pairing Lock Overlay ================= */
 
-function PairingLockOverlay() {
-  return (
-    <Backdrop
-      open
-      sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 10,
-        backdropFilter: "blur(6px)",
-        backgroundColor: "rgba(0,0,0,0.65)",
-      }}
-    >
-      <Stack spacing={2} alignItems="center" textAlign="center">
-        <Lock sx={{ fontSize: 64, color: "warning.main" }} />
-        <Typography variant="h5" fontWeight={700}>
-          Device Not Paired
-        </Typography>
-        <Typography color="text.secondary" maxWidth={320}>
-          This device must be paired with a hub before it can be used.
-          Please complete pairing in Settings.
-        </Typography>
-      </Stack>
-    </Backdrop>
-  )
-}
+// function PairingLockOverlay() {
+//   return (
+//     <Backdrop
+//       open
+//       sx={{
+//         zIndex: (theme) => theme.zIndex.drawer + 10,
+//         backdropFilter: "blur(6px)",
+//         backgroundColor: "rgba(0,0,0,0.65)",
+//       }}
+//     >
+//       <Stack spacing={2} alignItems="center" textAlign="center">
+//         <Lock sx={{ fontSize: 64, color: "warning.main" }} />
+//         <Typography variant="h5" fontWeight={700}>
+//           Device Not Paired
+//         </Typography>
+//         <Typography color="text.secondary" maxWidth={320}>
+//           This device must be paired with a hub before it can be used.
+//           Please complete pairing in Settings.
+//         </Typography>
+//       </Stack>
+//     </Backdrop>
+//   )
+// }
 
 /* ================= Layout ================= */
 

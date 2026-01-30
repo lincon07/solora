@@ -21,13 +21,6 @@ async function getHubToken(): Promise<string | null> {
   return await window.soloras.getDeviceToken()
 }
 
-async function getUserToken(): Promise<string | null> {
-  if (!window.soloras?.getUserToken) {
-    console.warn("[api] getUserToken not available")
-    return null
-  }
-  return await window.soloras.getUserToken()
-}
 
 /* =========================================================
  * Core API client
@@ -50,7 +43,8 @@ export async function api<T>(
   }
 
   if (auth === "user") {
-    const token = await getUserToken()
+    // Placeholder for user token retrieval
+    const token = 0
     if (!token) {
       throw new Error("Missing user token")
     }

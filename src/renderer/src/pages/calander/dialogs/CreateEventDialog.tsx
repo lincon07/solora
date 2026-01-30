@@ -51,7 +51,7 @@ export function CreateEventDialog({
   const [title, setTitle] = React.useState("")
   const [start, setStart] = React.useState<Date | null>(null)
   const [end, setEnd] = React.useState<Date | null>(null)
-  const [color, setColor] = React.useState(EVENT_COLORS[0])
+  const [color, _setColor] = React.useState(EVENT_COLORS[0])
   const [creatorId, setCreatorId] = React.useState("")
 
   React.useEffect(() => {

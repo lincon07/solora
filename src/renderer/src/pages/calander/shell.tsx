@@ -22,7 +22,6 @@ import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
-import { json } from "stream/consumers"
 
 type Props = {
   loading: boolean
@@ -184,7 +183,7 @@ export function CalendarShell({
             eventContent={(arg) => {
               const event = arg.event
               const props = event.extendedProps || {}
-              const profileUrl = props.profileUrl as string | undefined
+              // const profileUrl = props.profileUrl as string | undefined
               const color =
                 props.color ||
                 event.backgroundColor ||

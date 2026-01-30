@@ -159,7 +159,7 @@ function createMaterialTheme(mode: "light" | "dark", density: DensityMode) {
   });
 }
 
-function createAntTheme(mode: "light" | "dark", density: DensityMode) {
+function createAntTheme(mode: "light" | "dark", _density: DensityMode) {
   const isDark = mode === "dark";
   return createTheme({
     palette: {
@@ -176,7 +176,7 @@ function createAntTheme(mode: "light" | "dark", density: DensityMode) {
   });
 }
 
-function createSaasTheme(mode: "light" | "dark", density: DensityMode) {
+function createSaasTheme(mode: "light" | "dark", _density: DensityMode) {
   const isDark = mode === "dark";
   return createTheme({
     palette: {
@@ -192,7 +192,7 @@ function createSaasTheme(mode: "light" | "dark", density: DensityMode) {
   });
 }
 
-function createFlatTheme(mode: "light" | "dark", density: DensityMode) {
+function createFlatTheme(mode: "light" | "dark", _density: DensityMode) {
   const isDark = mode === "dark";
   return createTheme({
     palette: {

@@ -1,5 +1,4 @@
 // MembersManagement.tsx
-import * as React from "react"
 import {
   Card,
   CardContent,
@@ -297,7 +296,7 @@ function AddMemberDialog({
 
   // avatar picking (preview only)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [_avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const pairing = usePairing({
