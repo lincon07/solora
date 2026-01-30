@@ -54,7 +54,7 @@ export async function createTaskList(
     const res = await fetch(`${API_BASE}/hub/${hubId}/task-lists`, {
         method: "POST",
         headers: {
-            ...hubAuthHeaders(),
+            ...(await hubAuthHeaders()),
             "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
@@ -77,7 +77,7 @@ export async function archiveTaskList(
         `${API_BASE}/hub/${hubId}/task-lists/${listId}/archive`,
         {
             method: "PATCH",
-            headers: hubAuthHeaders(),
+            headers: await hubAuthHeaders(),
         }
     )
 
@@ -97,7 +97,7 @@ export async function deleteTaskList(
         `${API_BASE}/hub/${hubId}/task-lists/${listId}`,
         {
             method: "DELETE",
-            headers: hubAuthHeaders(),
+            headers: await hubAuthHeaders(),
         }
     )
 
@@ -118,7 +118,7 @@ export async function fetchTasks(
     const res = await fetch(
         `${API_BASE}/hub/${hubId}/task-lists/${listId}/tasks`,
         {
-            headers: hubAuthHeaders(),
+            headers: await hubAuthHeaders(),
         }
     )
 
@@ -141,7 +141,7 @@ export async function createTask(
         {
             method: "POST",
             headers: {
-                ...hubAuthHeaders(),
+                ...(await hubAuthHeaders()),
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ title }),
@@ -167,7 +167,7 @@ export async function updateTaskStatus(
         {
             method: "PATCH",
             headers: {
-                ...hubAuthHeaders(),
+                ...(await hubAuthHeaders()),
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ isDone }),
@@ -191,7 +191,7 @@ export async function deleteTask(
         `${API_BASE}/hub/${hubId}/tasks/${taskId}`,
         {
             method: "DELETE",
-            headers: hubAuthHeaders(),
+            headers: await hubAuthHeaders(),
         }
     )
 

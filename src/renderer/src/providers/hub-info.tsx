@@ -117,3 +117,10 @@ export const HubInfoProvider: React.FC<React.PropsWithChildren> = ({
     </HubInfoContext.Provider>
   )
 }
+
+export const useHubInfo = () => {
+  if (!React.useContext(HubInfoContext)) {
+    throw new Error("useHubInfo must be used within a HubInfoProvider")
+  } 
+  return React.useContext(HubInfoContext)!
+}
