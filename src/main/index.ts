@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { autoUpdater } from 'electron-updater'
-import { cpuUsage, mainModule } from 'process'
+import { cpuUsage } from 'process'
 import "./pairing-ipc"
 import { getDeviceToken } from './device'
 import { exec } from 'child_process'
@@ -21,11 +21,6 @@ autoUpdater.setFeedURL({
   token: process.env.GITHUB_TOKEN,
   releaseType: 'release'
 })
-
-// is development mode
-const apiURL = is.dev
-  ? 'http://10.0.0.229:3008' // <-- your LAN IP
-  : 'https://solora-api-841c6cc58685.herokuapp.com'
 
 autoUpdater.forceDevUpdateConfig = true
 autoUpdater.disableWebInstaller = true
