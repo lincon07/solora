@@ -17,7 +17,7 @@ const PHOTOS = [
   "https://plus.unsplash.com/premium_photo-1661375271640-2b4a1f9687c0?w=2000&auto=format&fit=crop&q=60",
   "https://images.unsplash.com/photo-1767082236152-801d9b5d6637?w=2000&auto=format&fit=crop&q=60",
   "https://images.unsplash.com/photo-1767082236103-7c25a8146976?w=2000&auto=format&fit=crop&q=60",
-]
+] 
 
 const DISPLAY_MS = 9000
 const FADE_MS = 1200
