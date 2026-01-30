@@ -1,4 +1,4 @@
-name: Build Linux ARM64 (.deb)
+name: Build Android APK (Emerita OS / Android 16)
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build-linux-arm64:
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,29 +21,33 @@ jobs:
         with:
           node-version: 20
 
-      - name: Enable QEMU (ARM64)
-        uses: docker/setup-qemu-action@v3
+      - name: Set up Java (JDK 17)
+        uses: actions/setup-java@v4
         with:
-          platforms: arm64
+          distribution: temurin
+          java-version: 17
 
-      - name: Install system deps
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
         run: |
-          sudo apt update
-          sudo apt install -y ruby ruby-dev build-essential
-          sudo gem install fpm
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Install npm deps
+      - name: Install npm dependencies
         run: npm install
 
-      - name: Build app
+      - name: Build web app
         run: npm run build
 
-      - name: Build ARM64 .deb
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # For Tauri Android or Capacitor
+      - name: Build APK
         run: |
-          npx electron-builder \
-            --linux deb \
-            --arm64 \
-            --publish always
+          cd android
+          ./gradlew assembleDebug
 
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/*.apk
